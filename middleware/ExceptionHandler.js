@@ -5,7 +5,7 @@ const path = require('path');
  * Lokasi: core/Middleware/ExceptionHandler.js
  */
 module.exports = (err, req, res, next) => {
-    // --- 1. HANDLE FXD() DUMP (Paling Atas agar Cepat) ---
+    // --- 1. HANDLE kuppa() DUMP (Paling Atas agar Cepat) ---
     if (err.message === 'kuppa_DUMP') {
         return res.status(200).send(err.dumpData);
     }

@@ -78,7 +78,7 @@ if (command === 'migrate') {
 else if (command && command.startsWith('make:')) {
     const name = subCommand;
     if (!name) {
-        console.error('\x1b[31mError:\x1b[0m Please provide a name (e.g., fx make:model Blog).');
+        console.error('\x1b[31mError:\x1b[0m Please provide a name (e.g., kuppa make:model Blog).');
         process.exit(1);
     }
 
@@ -128,8 +128,8 @@ else if (command && command.startsWith('make:')) {
             break;
 
         default:
-            console.log('\x1b[31mError:\x1b[0m Unknown command. Type \x1b[1mfx help\x1b[0m for list of commands.');
+            console.log('\x1b[31mError:\x1b[0m Unknown command. Type \x1b[1mkuppa help\x1b[0m for list of commands.');
     }
 } else {
-    console.log('\x1b[31mError:\x1b[0m Unknown command. Type \x1b[1mfx help\x1b[0m.');
+    console.log('\x1b[31mError:\x1b[0m Unknown command. Type \x1b[1mkuppa help\x1b[0m.');
 }

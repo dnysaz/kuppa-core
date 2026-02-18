@@ -2,7 +2,7 @@
  * kuppa Engine - Die and Dump Debugger
  * Optimized by Ketut Dana
  */
-global.fxd = global.dump = (data) => {
+global.kuppa = global.dump = (data) => {
     const stackLines = new Error().stack.split('\n');
     const stack = stackLines[2] ? stackLines[2].trim() : 'unknown location';
     
