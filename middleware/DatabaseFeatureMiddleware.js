@@ -28,7 +28,7 @@ module.exports = (req, res, next) => {
             // Opsi 2: Kirim error 403 agar ditangkap Debugger KuppaJs
             const error = new Error('Database Connection Required');
             error.status = 403;
-            error.statusText = 'Halaman ini membutuhkan koneksi Supabase yang aktif.';
+            error.statusText = 'Database connection required. Please check your Supabase credentials in .env.';
             return next(error); 
         }
     }
