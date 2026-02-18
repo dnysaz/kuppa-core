@@ -37,7 +37,7 @@
 ├── public/             # Static assets (CSS, JS, Images)
 ├── routes/             # Routing definitions
 └── views/              # Handlebars templates
-| fx.js
+| kuppa
 | server.js
 
 ```
