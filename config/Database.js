@@ -17,7 +17,7 @@ let supabase = null;
  */
 if (useSupabase) {
     if (!supabaseUrl || !supabaseKey) {
-        console.warn('\x1b[33m%s\x1b[0m', '[fxd4 Warning]: SUPABASE_URL or SUPABASE_KEY is missing in .env.');
+        console.warn('\x1b[33m%s\x1b[0m', '[Kuppa Warning]: SUPABASE_URL or SUPABASE_KEY is missing in .env.');
         console.warn('\x1b[33m%s\x1b[0m', 'Database features will be disabled until configured.');
     } else {
         /**
@@ -32,14 +32,14 @@ if (useSupabase) {
                         detectSessionInUrl: false
                     },
                     global: {
-                        headers: { 'x-application-name': 'fxd4.js' }
+                        headers: { 'x-application-name': 'Kuppa.js' }
                     },
                     db: {
                         schema: 'public'
                     }
                 });
             } catch (err) {
-                console.error('\x1b[31m%s\x1b[0m', `[fxd4 Error]: Failed to initialize Supabase: ${err.message}`);
+                console.error('\x1b[31m%s\x1b[0m', `[Kuppa Error]: Failed to initialize Supabase: ${err.message}`);
             }
         }
         supabase = global.supabaseInstance;
