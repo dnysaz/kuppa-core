@@ -1,0 +1,25 @@
+/**
+ * {{name}} Middleware - fxd4 Framework
+ * Generated for consistent request filtering
+ */
+module.exports = async (process, next) => {
+    try {
+        /**
+         * Middleware Logic
+         * Example: Session validation, RBAC (Role-Based Access Control), etc.
+         */
+        
+        // If validation passes, proceed to the next layer
+        next();
+        
+    } catch (err) {
+        /**
+         * Centralized Error Logging
+         * Ensures that middleware failures are caught by the fxd4 debugger
+         */
+        console.error('[fxd4 Middleware Error]:', err.message);
+
+        // Optional: Redirect to login or error page on failure
+        // return process.redirect('login');
+    }
+};

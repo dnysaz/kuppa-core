@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{status}} | {{message}}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Figtree', sans-serif; }
+        pre, code { font-family: 'JetBrains Mono', monospace; }
+        .stack-trace {
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 #f1f5f9;
+            max-height: 600px;
+        }
+        .copy-success { color: #10b981 !important; }
+        /* Style for injected HTML in statusText */
+        .status-text-content code { background: #fee2e2; padding: 2px 4px; rounded: 4px; color: #b91c1c; font-size: 0.9em; }
+        .status-text-content strong { font-weight: 700; color: #0f172a; }
+    </style>
+</head>
+<body class="bg-[#f8fafc] text-[#1e293b]">
+
+    <nav class="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center sticky top-0 z-50">
+        <div class="flex items-center gap-3">
+            <div class="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
+                {{status}} Error
+            </div>
+            <span class="text-slate-400">/</span>
+            <span class="text-slate-600 font-medium text-sm italic">{{method}} {{path}}</span>
+        </div>
+        <div class="text-slate-400 text-xs font-semibold uppercase tracking-widest">
+            {{appName}} Debugger
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-6 py-12">
+        {{!-- Exception & Instruction Section --}}
+        <section class="mb-12">
+            <h2 class="text-slate-400 text-sm font-bold uppercase tracking-widest mb-2 text-[10px]">Exception Message</h2>
+            <h1 class="text-2xl font-bold text-slate-900 leading-tight mb-4">
+                {{message}}
+            </h1>
+            
+            {{!-- Render Instruction / statusText (Using triple braces for HTML) --}}
+            {{#if statusText}}
+            <div class="bg-red-50 border border-red-100 rounded-lg p-4 text-sm text-red-800 leading-relaxed shadow-sm status-text-content">
+                <div class="flex items-center gap-2 mb-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span class="font-bold uppercase tracking-tight text-[11px]">Developer Instructions</span>
+                </div>
+                {{{statusText}}}
+            </div>
+            {{/if}}
+        </section>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div class="lg:col-span-12">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="bg-slate-50 px-6 py-3 border-b border-slate-200 flex justify-between items-center">
+                        <span class="text-xs font-bold text-slate-500 uppercase tracking-widest text-[10px]">Stack Trace</span>
+                        <div class="flex items-center gap-4">
+                             <button onclick="copyStack()" id="copyBtn" class="text-[10px] font-bold text-blue-600 hover:text-blue-800 uppercase tracking-widest flex items-center gap-1 transition-all">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+                                </svg>
+                                <span>Copy Trace</span>
+                            </button>
+                            <span class="text-[10px] text-slate-400 font-mono">{{nodeVersion}} (Node.js)</span>
+                        </div>
+                    </div>
+                    
+                    <div class="p-0 relative">
+                        <pre id="stackArea" class="stack-trace overflow-auto text-[13px] leading-relaxed p-6 text-slate-700 bg-[#fdfdfd]">{{stack}}</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="mt-16 pt-8 border-t border-slate-200 flex justify-between items-center text-slate-500">
+            <div class="flex items-center gap-4">
+                <span class="font-bold tracking-tighter text-lg text-slate-900">{{appName}}<span class="text-blue-600"> v{{appVersion}}</span></span>
+                <span class="text-slate-300">|</span>
+                <span class="text-sm font-medium italic">Authentically built by Ketut Dana</span>
+            </div>
+            <div class="flex gap-6">
+                <a href="https://stackoverflow.com/search?q=[nodejs] {{message}}" target="_blank" class="text-[10px] font-bold text-slate-400 hover:text-blue-600 uppercase tracking-widest transition">
+                    Stack Overflow
+                </a>
+                <a href="https://google.com/search?q={{message}}" target="_blank" class="text-[10px] font-bold text-blue-600 hover:text-blue-800 uppercase tracking-widest transition">
+                    Search Solutions &rarr;
+                </a>
+            </div>
+        </footer>
+    </main>
+
+    <script>
+        function copyStack() {
+            const stackText = document.getElementById('stackArea').innerText;
+            const btn = document.getElementById('copyBtn');
+            const originalText = btn.innerHTML;
+
+            navigator.clipboard.writeText(stackText).then(() => {
+                btn.innerHTML = '<span class="copy-success italic">Copied!</span>';
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>

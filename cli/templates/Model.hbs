@@ -1,0 +1,27 @@
+const BaseModel = require('../../core/model/BaseModel');
+
+/**
+ * {{name}} Model - fxd4 Framework
+ * Handles data logic for the '{{table}}' table
+ */
+class {{name}} extends BaseModel {
+    constructor() {
+        /**
+         * Pass the table name to the BaseModel
+         */
+        super('{{table}}');
+
+        /**
+         * Mass Assignment Protection
+         * Only columns listed here can be inserted or updated via the process object.
+         * Example: ['title', 'content', 'user_id']
+         */
+        this.fillable = []; 
+    }
+
+    /**
+     * Define custom relationships or logic below
+     */
+}
+
+module.exports = new {{name}}();

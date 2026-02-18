@@ -1,0 +1,80 @@
+const BaseController = require('../../../core/controller/BaseController');
+const BaseApi = require('../../../core/api/BaseApiController');
+
+/**
+ * {{name}} - fxd4 API Framework
+ * Standardized JSON CRUD Operations with BaseController Inheritance
+ */
+class {{name}} extends BaseController {
+
+    /**
+     * [GET] List all resources
+     * Tip: Access external APIs via process.http.get()
+     */
+    static async index(process) {
+        try {
+            // const data = await Model.all();
+            return BaseApi.success(process.res, [], '{{name}} list retrieved successfully');
+        } catch (err) {
+            return BaseApi.error(process.res, err.message);
+        }
+    }
+
+    /**
+     * [POST] Create a new resource
+     */
+    static async store(process) {
+        const controller = new {{name}}();
+        try {
+            // const path = await controller.upload(process, { folder: '{{name_lower}}', field: 'file' });
+            const payload = process.body;
+            
+            return BaseApi.success(process.res, payload, '{{name}} created successfully', 201);
+        } catch (err) {
+            return BaseApi.error(process.res, err.message);
+        }
+    }
+
+    /**
+     * [GET] Get a single resource by ID
+     */
+    static async show(process) {
+        try {
+            const id = process.params.id;
+            return BaseApi.success(process.res, { id }, '{{name}} detail retrieved');
+        } catch (err) {
+            return BaseApi.error(process.res, err.message);
+        }
+    }
+
+    /**
+     * [PUT/PATCH] Update an existing resource
+     */
+    static async update(process) {
+        const controller = new {{name}}();
+        try {
+            const id = process.params.id;
+            const payload = process.body;
+            
+            // Example: const newFile = await controller.upload(process, { folder: '{{name_lower}}', field: 'file' });
+
+            return BaseApi.success(process.res, { id, ...payload }, '{{name}} updated successfully');
+        } catch (err) {
+            return BaseApi.error(process.res, err.message);
+        }
+    }
+
+    /**
+     * [DELETE] Remove a resource
+     */
+    static async destroy(process) {
+        try {
+            const id = process.params.id;
+            return BaseApi.success(process.res, null, '{{name}} deleted successfully');
+        } catch (err) {
+            return BaseApi.error(process.res, err.message);
+        }
+    }
+}
+
+module.exports = {{name}};

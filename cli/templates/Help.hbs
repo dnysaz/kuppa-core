@@ -1,0 +1,22 @@
+[1m[32mKuppa.JS[0m CLI Tool v1.0.0
+    [33mUsage:[0m
+      node kuppa [command] [arguments] [flags]
+
+    [33mCore Commands:[0m
+      [1mrun:install[0m           Sync & install kuppa core engine
+      [1mrun:update[0m            Update kuppa core engine to latest version
+
+    [33mGenerators (make):[0m
+      [1mmake:controller [N][0m   Create a new CRUD controller. Use [36m--api[0m for JSON.
+      [1mmake:model [N] [-m][0m   Create a model. Use [36m-m[0m to generate a migration
+      [1mmake:migration [N][0m    Create a new migration file in app/migrations
+      [1mmake:middleware [N][0m   Create a new middleware in app/Middleware
+
+    [33mDatabase (migrate):[0m
+      [1mmigrate[0m               Run all pending migrations to Supabase
+      [1mmigrate:status[0m        Check the status of all migrations
+      [1mmigrate:rollback[0m      Rollback the last migration batch
+      [1mmigrate:fresh[0m         Drop all tables and re-run all migrations
+
+    [33mOptions:[0m
+      [36m--help, help[0m          Display this help message

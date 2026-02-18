@@ -1,0 +1,123 @@
+const BaseController = require('../../core/controller/BaseController');
+// const Model = require('../Models/YourModel');
+
+
+/**
+ * {{name}} - fxd4 Framework
+ * Generated for Full CRUD Operations
+ */
+class {{name}} extends BaseController {
+
+    /**
+     * [GET] Index Page
+     * Tip: Use await process.http.get('url') to fetch external data.
+     */
+    static async index(process) {
+        try {
+            process.render('{{name_lower}}.index', { 
+                title: 'List of {{name}}' 
+            });
+        } catch (err) {
+            console.error('[fxd4 Error]', err.message);
+        }
+
+        process.error;
+    }
+
+    /**
+     * [GET] Create Page
+     */
+    static async create(process) {
+        process.render('{{name_lower}}.create', { 
+            title: 'Create New {{name}}' 
+        });
+
+        process.error;
+    }
+
+    /**
+     * [POST] Store Action
+     */
+    static async store(process) {
+        const controller = new {{name}}();
+        try {
+            // Example Upload: const path = await controller.upload(process, { folder: '{{name_lower}}', field: 'image' });
+            process.redirect('{{name_lower}}');
+        } catch (err) {
+            console.error('[fxd4 Error]', err.message);
+        }
+
+        process.error;
+    }
+
+    /**
+     * [GET] Show Detail Page
+     */
+    static async show(process) {
+        try {
+            const id = process.params.id;
+
+            process.render('{{name_lower}}.show', { 
+                title: 'Detail of {{name}}',
+                id: id
+            });
+        } catch (err) {
+            console.error('[fxd4 Error]', err.message);
+        }
+
+        process.error;
+    }
+
+    /**
+     * [GET] Edit Page
+     */
+    static async edit(process) {
+        try {
+            const id = process.params.id;
+
+            process.render('{{name_lower}}.edit', { 
+                title: 'Edit {{name}}',
+                id: id
+            });
+        } catch (err) {
+            console.error('[fxd4 Error]', err.message);
+        }
+
+        process.error;
+    }
+
+    /**
+     * [POST/PUT] Update Action
+     */
+    static async update(process) {
+        const controller = new {{name}}();
+        try {
+            const id = process.params.id;
+            // Example Upload: const path = await controller.upload(process, { folder: '{{name_lower}}', field: 'image' });
+            
+            process.redirect('{{name_lower}}');
+        } catch (err) {
+            console.error('[fxd4 Error]', err.message);
+        }
+
+        process.error;
+    }
+
+    /**
+     * [POST/DELETE] Destroy Action
+     */
+    static async destroy(process) {
+        try {
+            const id = process.params.id;
+
+            // Logic: await Model.delete(id);
+            process.redirect('{{name_lower}}');
+        } catch (err) {
+            console.error('[fxd4 Error]', err.message);
+        }
+
+        process.error;
+    }
+}
+
+module.exports = {{name}};
