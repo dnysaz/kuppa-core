@@ -1,5 +1,5 @@
 /**
- * fxd4 Engine - Async Wrapper
+ * kuppa Engine - Async Wrapper
  * Integrated with Axios (http), Dot Notation, Named Routes, and Smart API Error Handling
  */
 const axios = require('axios');
@@ -39,11 +39,11 @@ const catchAsync = (fn) => {
             // --- Navigation Helper ---
             // Detects named routes or falls back to raw URL
             redirect: (target) => {
-                const namedRoute = global.fxd4Routes ? global.fxd4Routes[target] : null;
+                const namedRoute = global.kuppaRoutes ? global.kuppaRoutes[target] : null;
                 return res.redirect(namedRoute || target);
             },
             
-            // Compatibility flag for fxd4 controllers logic
+            // Compatibility flag for kuppa controllers logic
             get error() { return true; }
         };
 

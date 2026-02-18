@@ -1,12 +1,12 @@
 const path = require('path');
 
 /**
- * ExceptionHandler - fxd4 Core Engine
+ * ExceptionHandler - kuppa Core Engine
  * Lokasi: core/Middleware/ExceptionHandler.js
  */
 module.exports = (err, req, res, next) => {
     // --- 1. HANDLE FXD() DUMP (Paling Atas agar Cepat) ---
-    if (err.message === 'FXD4_DUMP') {
+    if (err.message === 'kuppa_DUMP') {
         return res.status(200).send(err.dumpData);
     }
 
@@ -14,7 +14,7 @@ module.exports = (err, req, res, next) => {
     const statusCode = err.status || 500;
 
     // Log error ke konsol server dengan warna merah agar mencolok
-    console.error(`\x1b[31m[fxd4 Error]\x1b[0m: ${err.message}`);
+    console.error(`\x1b[31m[kuppa Error]\x1b[0m: ${err.message}`);
 
     // Mapping Status Message untuk Production
     const statusMessages = {
@@ -45,14 +45,14 @@ module.exports = (err, req, res, next) => {
             path: req.path,
             method: req.method,
             timestamp: new Date().toLocaleString(),
-            appName: process.env.APP_NAME || 'fxd4.js',
+            appName: process.env.APP_NAME || 'kuppa.js',
             appVersion: process.env.APP_VERSION || '0.0.0',
             nodeVersion: process.version
         });
     }
 
     // --- 3. TAMPILAN MINIMALIS (Production) ---
-    const appName = process.env.APP_NAME || 'fxd4.js';
+    const appName = process.env.APP_NAME || 'kuppa.js';
     const appVersion = process.env.APP_VERSION || '0.0.0';
 
     res.status(statusCode).send(`

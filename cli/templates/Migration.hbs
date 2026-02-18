@@ -1,7 +1,7 @@
 const Migration = require('../../core/migrations/BaseMigration');
 
 /**
- * {{className}} Migration - fxd4 Framework
+ * {{className}} Migration - kuppa Framework
  * Driven by Supabase (PostgreSQL)
  */
 class {{className}} extends Migration {
@@ -10,7 +10,7 @@ class {{className}} extends Migration {
      */
     async up() {
         return this.createTable('{{tableName}}', (table) => {
-            // Primary Key: Recommended to use UUID for fxd4
+            // Primary Key: Recommended to use UUID for kuppa
             table.id(); 
             
             // table.string('title').nullable(false);
@@ -19,7 +19,7 @@ class {{className}} extends Migration {
             // table.boolean('is_active').default(true);
             // table.uuid('user_id').references('users', 'id');
             
-            // Default fxd4 timestamps (created_at, updated_at)
+            // Default kuppa timestamps (created_at, updated_at)
             table.timestamps();
         });
     }

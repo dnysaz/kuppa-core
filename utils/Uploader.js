@@ -3,7 +3,7 @@ const path = require('path');
 const fs = require('fs');
 
 /**
- * fxd4 Uploader Wrapper
+ * kuppa Uploader Wrapper
  * Optimized for Async/Await inside Controllers with Dynamic Pathing
  * * @param {Object} req - Express Request
  * @param {Object} res - Express Response

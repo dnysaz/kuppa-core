@@ -1,5 +1,5 @@
 /**
- * fxd4 Column Definition - Handles Chaining Logic
+ * kuppa Column Definition - Handles Chaining Logic
  */
 class ColumnDefinition {
     constructor(name, type) {
@@ -44,7 +44,7 @@ class ColumnDefinition {
 }
 
 /**
- * fxd4 Schema Builder - High Performance DDL Generator
+ * kuppa Schema Builder - High Performance DDL Generator
  */
 class SchemaBuilder {
     constructor() {

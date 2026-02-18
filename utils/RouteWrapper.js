@@ -1,10 +1,10 @@
 /**
- * fxd4 Engine - Route Wrapper
+ * kuppa Engine - Route Wrapper
  * Optimized for Grouping & Chaining
  */
 const catchAsync = require('./CatchAsync');
 
-global.fxd4Routes = global.fxd4Routes || {};
+global.kuppaRoutes = global.kuppaRoutes || {};
 
 const wrap = (router) => {
     const methods = ['get', 'post', 'put', 'delete', 'patch'];
@@ -23,7 +23,7 @@ const wrap = (router) => {
             // Return object for .name() chaining
             return {
                 name: (routeName) => {
-                    global.fxd4Routes[routeName] = path;
+                    global.kuppaRoutes[routeName] = path;
                     return router; 
                 }
             };

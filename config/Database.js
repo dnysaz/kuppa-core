@@ -1,7 +1,7 @@
 const { createClient } = require('@supabase/supabase-js');
 
 /**
- * fxd4 Engine - Database Connection (High Performance)
+ * kuppa Engine - Database Connection (High Performance)
  * Location: core/config/Database.js
  */
 

@@ -2,7 +2,7 @@ const runUploader = require('../utils/Uploader');
 const path = require('path');
 
 /**
- * fxd4 Base Controller
+ * kuppa Base Controller
  * The mother of all controllers
  */
 class BaseController {

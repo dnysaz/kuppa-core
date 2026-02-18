@@ -1,10 +1,10 @@
 const { supabase } = require('../config/Database');
 
 // Persistent cache storage
-global.fxd4Cache = global.fxd4Cache || {};
+global.kuppaCache = global.kuppaCache || {};
 
 /**
- * fxd4 Engine - BaseModel
+ * kuppa Engine - BaseModel
  * Optimized Eloquent-style ORM with Smart Cache & Security
  */
 class BaseModel {
@@ -44,9 +44,9 @@ class BaseModel {
      */
     _clearTableCache() {
         const prefix = `${this.table}:`;
-        Object.keys(global.fxd4Cache).forEach(key => {
+        Object.keys(global.kuppaCache).forEach(key => {
             if (key.startsWith(prefix)) {
-                delete global.fxd4Cache[key];
+                delete global.kuppaCache[key];
             }
         });
     }
@@ -103,14 +103,14 @@ class BaseModel {
         const now = Date.now();
 
         // Check Cache
-        if (global.fxd4Cache[cacheKey] && (now - global.fxd4Cache[cacheKey].time < this.cacheTTL)) {
-            return global.fxd4Cache[cacheKey].data;
+        if (global.kuppaCache[cacheKey] && (now - global.kuppaCache[cacheKey].time < this.cacheTTL)) {
+            return global.kuppaCache[cacheKey].data;
         }
 
         const data = await this.where('id', id).first();
         
         if (data) {
-            global.fxd4Cache[cacheKey] = { data: data, time: now };
+            global.kuppaCache[cacheKey] = { data: data, time: now };
         }
         
         return data;

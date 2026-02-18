@@ -1,5 +1,5 @@
 /**
- * BaseApiController - fxd4 Framework
+ * BaseApiController - kuppa Framework
  * Standardizing JSON responses for API routes
  */
 class BaseApiController {

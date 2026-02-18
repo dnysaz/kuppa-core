@@ -1,5 +1,5 @@
 /**
- * {{name}} Middleware - fxd4 Framework
+ * {{name}} Middleware - kuppa Framework
  * Generated for consistent request filtering
  */
 module.exports = async (process, next) => {
@@ -15,9 +15,9 @@ module.exports = async (process, next) => {
     } catch (err) {
         /**
          * Centralized Error Logging
-         * Ensures that middleware failures are caught by the fxd4 debugger
+         * Ensures that middleware failures are caught by the kuppa debugger
          */
-        console.error('[fxd4 Middleware Error]:', err.message);
+        console.error('[kuppa Middleware Error]:', err.message);
 
         // Optional: Redirect to login or error page on failure
         // return process.redirect('login');

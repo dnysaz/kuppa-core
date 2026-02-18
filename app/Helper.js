@@ -2,7 +2,7 @@ const hbs = require('hbs');
 require('./Helpers/Kuppa_dump');
 
 /**
- * fxd4 Engine - Global Helpers
+ * kuppa Engine - Global Helpers
  * Optimized by Ketut Dana
  */
 
@@ -30,7 +30,7 @@ const registerHelpers = () => {
 
     // Named Route Resolver
     hbs.registerHelper('route', function (name, options) {
-        const routePath = global.fxd4Routes ? global.fxd4Routes[name] : null;
+        const routePath = global.kuppaRoutes ? global.kuppaRoutes[name] : null;
         if (!routePath) return '#';
 
         let url = routePath;

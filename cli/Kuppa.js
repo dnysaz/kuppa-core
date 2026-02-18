@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * fxd4 CLI - The "One Direction" Generator
+ * kuppa CLI - The "One Direction" Generator
  * Built by Ketut Dana
  */
 require('dotenv').config();

@@ -3,7 +3,7 @@ const BaseController = require('../../core/controller/BaseController');
 
 
 /**
- * {{name}} - fxd4 Framework
+ * {{name}} - kuppa Framework
  * Generated for Full CRUD Operations
  */
 class {{name}} extends BaseController {
@@ -18,7 +18,7 @@ class {{name}} extends BaseController {
                 title: 'List of {{name}}' 
             });
         } catch (err) {
-            console.error('[fxd4 Error]', err.message);
+            console.error('[kuppa Error]', err.message);
         }
 
         process.error;
@@ -44,7 +44,7 @@ class {{name}} extends BaseController {
             // Example Upload: const path = await controller.upload(process, { folder: '{{name_lower}}', field: 'image' });
             process.redirect('{{name_lower}}');
         } catch (err) {
-            console.error('[fxd4 Error]', err.message);
+            console.error('[kuppa Error]', err.message);
         }
 
         process.error;
@@ -62,7 +62,7 @@ class {{name}} extends BaseController {
                 id: id
             });
         } catch (err) {
-            console.error('[fxd4 Error]', err.message);
+            console.error('[kuppa Error]', err.message);
         }
 
         process.error;
@@ -80,7 +80,7 @@ class {{name}} extends BaseController {
                 id: id
             });
         } catch (err) {
-            console.error('[fxd4 Error]', err.message);
+            console.error('[kuppa Error]', err.message);
         }
 
         process.error;
@@ -97,7 +97,7 @@ class {{name}} extends BaseController {
             
             process.redirect('{{name_lower}}');
         } catch (err) {
-            console.error('[fxd4 Error]', err.message);
+            console.error('[kuppa Error]', err.message);
         }
 
         process.error;
@@ -113,7 +113,7 @@ class {{name}} extends BaseController {
             // Logic: await Model.delete(id);
             process.redirect('{{name_lower}}');
         } catch (err) {
-            console.error('[fxd4 Error]', err.message);
+            console.error('[kuppa Error]', err.message);
         }
 
         process.error;
