@@ -110,6 +110,8 @@ const startServer = () => {
     app.listen(PORT, () => {
         console.log(`🚀 Kuppa.JS running at http://localhost:${PORT}`);
         console.log(`Hello Kuppa!`);
+        console.log(`The Minimalist Javascript Supabase Framework`);
+
     });
 };
 
