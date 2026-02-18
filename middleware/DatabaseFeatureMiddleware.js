@@ -1,26 +1,36 @@
 /**
  * DatabaseFeatureMiddleware - Kuppa Core Engine
- * Optimized for High-Performance & Seamless User Experience
  */
 module.exports = (req, res, next) => {
     const useSupabase = process.env.USE_SUPABASE === 'true';
     const hasCredentials = process.env.SUPABASE_URL && process.env.SUPABASE_KEY;
 
-    // Jika kredensial kosong atau fitur dimatikan
+    // Cek apakah database benar-benar aktif dan siap
     if (!useSupabase || !hasCredentials) {
-        /**
-         * Jangan di-next(error) agar tidak crash.
-         * Kita simpan statusnya ke res.locals agar bisa dibaca di file .hbs
-         */
+        
+        // Simpan status untuk UI (opsional)
         res.locals.dbStatus = {
             isDisabled: true,
             message: !useSupabase 
-                ? 'Supabase feature is currently disabled.' 
-                : 'Supabase credentials (URL/KEY) are missing in .env.'
+                ? 'Database feature is disabled.' 
+                : 'Database credentials missing.'
         };
 
-        // Tetap lanjut ke proses berikutnya (Controller)
-        return next();
+        /**
+         * LOGIKA BLOKIR:
+         * Jika user mencoba akses selain halaman Home ('/'), 
+         * kita lempar ke halaman error atau redirect ke Home.
+         */
+        if (req.path !== '/') {
+            // Opsi 1: Redirect ke home dengan pesan error
+            // return res.redirect('/?error=db_required');
+
+            // Opsi 2: Kirim error 403 agar ditangkap Debugger KuppaJs
+            const error = new Error('Database Connection Required');
+            error.status = 403;
+            error.statusText = 'Halaman ini membutuhkan koneksi Supabase yang aktif.';
+            return next(error); 
+        }
     }
 
     next();
