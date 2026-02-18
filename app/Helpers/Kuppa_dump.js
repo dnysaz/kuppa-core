@@ -1,5 +1,5 @@
 /**
- * fxd4 Engine - Die and Dump Debugger
+ * kuppa Engine - Die and Dump Debugger
  * Optimized by Ketut Dana
  */
 global.fxd = global.dump = (data) => {
@@ -21,7 +21,7 @@ global.fxd = global.dump = (data) => {
         displayData = "[Circular Reference or Unstringifiable Data]";
     }
 
-    const appName = process.env.APP_NAME || 'fxd4.js';
+    const appName = process.env.APP_NAME || 'kuppa.js';
     const appVersion = process.env.APP_VERSION || '0.0.0';
 
     const html = `
@@ -30,7 +30,7 @@ global.fxd = global.dump = (data) => {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>fxd4 Dump</title>
+        <title>kuppa Dump</title>
         <style>
             body { 
                 margin: 0; 
@@ -57,7 +57,7 @@ global.fxd = global.dump = (data) => {
     <body>
         <div class="dump-wrapper">
             <div class="header">
-                <h1>fxd4 Dump</h1>
+                <h1>Kuppa Dump</h1>
                 <div><h2>${stack}</h2></div>
             </div>
             <pre>${displayData}</pre>
@@ -69,7 +69,7 @@ global.fxd = global.dump = (data) => {
     </body>
     </html>`;
 
-    const err = new Error('FXD4_DUMP');
+    const err = new Error('KUPPA_DUMP');
     err.dumpData = html;
     throw err;
 };

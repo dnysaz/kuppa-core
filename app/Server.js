@@ -59,7 +59,7 @@ app.use((req, res, next) => {
     // Inject Basic Global Variables
     res.locals.supabaseActive = !!(process.env.SUPABASE_URL && process.env.SUPABASE_KEY);
     res.locals.useSupabase = process.env.USE_SUPABASE !== 'false';
-    res.locals.appName = process.env.APP_NAME || 'fxd4.js';
+    res.locals.appName = process.env.APP_NAME || 'kuppa.js';
     res.locals.appVersion = process.env.APP_VERSION || '0.5.0';
 
     // Performance Profiler Helper
@@ -108,8 +108,8 @@ app.use(require('../middleware/ExceptionHandler'));
 const startServer = () => {
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
-        console.log(`🚀 fxd4 running at http://localhost:${PORT}`);
-        console.log(`Authentically built by Ketut Dana`);
+        console.log(`🚀 Kuppa.JS running at http://localhost:${PORT}`);
+        console.log(`Hello Kuppa!`);
     });
 };
 

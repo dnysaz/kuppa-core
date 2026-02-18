@@ -1,5 +1,5 @@
 const hbs = require('hbs');
-require('./Helpers/Fxd_dump');
+require('./Helpers/Kuppa_dump');
 
 /**
  * fxd4 Engine - Global Helpers
