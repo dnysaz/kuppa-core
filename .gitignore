@@ -1,0 +1,36 @@
+# Dependency folders
+node_modules/
+
+# Framework Core (Automatically managed by Kuppa installer)
+core/
+
+# Environment variables (Highly Secret!)
+.env
+.env.local
+.env.production
+
+# Vercel & Production
+.vercel/
+dist/
+build/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs/
+*.log
+
+# OS Metadata
+.DS_Store
+Thumbs.db
+
+# IDE Settings
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+tmp/
+temp/
