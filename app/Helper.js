@@ -28,6 +28,10 @@ const registerHelpers = () => {
         return a === b;
     });
 
+    hbs.registerHelper('asset', function (path) {
+        return `/assets/${path}`;
+    });
+
     // Named Route Resolver
     hbs.registerHelper('route', function (name, options) {
         const routePath = global.kuppaRoutes ? global.kuppaRoutes[name] : null;
