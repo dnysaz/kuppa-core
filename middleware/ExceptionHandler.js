@@ -1,22 +1,21 @@
 const path = require('path');
 
 /**
- * ExceptionHandler - kuppa Core Engine
- * Lokasi: core/Middleware/ExceptionHandler.js
+ * ExceptionHandler - Kuppa.js Core Engine
+ * Location: core/middleware/ExceptionHandler.js
  */
 module.exports = (err, req, res, next) => {
-    // --- 1. HANDLE kuppa() DUMP (Paling Atas agar Cepat) ---
-    if (err.message === 'kuppa_DUMP') {
+    // --- 1. HANDLE Kuppa Dump (Harus Case Sensitive) ---
+    if (err.message === 'KUPPA_DUMP') {
         return res.status(200).send(err.dumpData);
     }
 
     const isDebug = process.env.APP_DEBUG === 'true';
     const statusCode = err.status || 500;
 
-    // Log error ke konsol server dengan warna merah agar mencolok
-    console.error(`\x1b[31m[kuppa Error]\x1b[0m: ${err.message}`);
+    // Log error ke konsol server
+    console.error(`\x1b[31m[Kuppa Error]\x1b[0m: ${err.message}`);
 
-    // Mapping Status Message untuk Production
     const statusMessages = {
         400: 'Bad Request',
         401: 'Unauthorized',
@@ -33,6 +32,7 @@ module.exports = (err, req, res, next) => {
 
     // --- 2. TAMPILAN DEBUG (Development) ---
     if (isDebug) {
+        // Pastikan path ke debug.hbs benar
         const debugViewPath = path.join(__dirname, '../views/errors/debug.hbs');
 
         return res.status(statusCode).render(debugViewPath, {
@@ -45,15 +45,15 @@ module.exports = (err, req, res, next) => {
             path: req.path,
             method: req.method,
             timestamp: new Date().toLocaleString(),
-            appName: process.env.APP_NAME || 'kuppa.js',
-            appVersion: process.env.APP_VERSION || '0.0.0',
+            appName: process.env.APP_NAME || 'Kuppa.js',
+            appVersion: process.env.APP_VERSION || '1.0.0',
             nodeVersion: process.version
         });
     }
 
     // --- 3. TAMPILAN MINIMALIS (Production) ---
-    const appName = process.env.APP_NAME || 'kuppa.js';
-    const appVersion = process.env.APP_VERSION || '0.0.0';
+    const appName = process.env.APP_NAME || 'Kuppa.js';
+    const appVersion = process.env.APP_VERSION || '1.0.0';
 
     res.status(statusCode).send(`
         <!DOCTYPE html>
