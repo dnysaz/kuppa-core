@@ -7,11 +7,32 @@ const SchemaBuilder = require('./SchemaBuilder');
 class Migration {
     /**
      * Create a new table on the schema.
+     * Automatically handles RLS and Public Access Policies for Supabase.
      */
     createTable(tableName, callback) {
         const table = new SchemaBuilder();
         callback(table);
-        return table.build(tableName);
+        
+        // 1. Generate standard table creation SQL
+        const tableSql = table.build(tableName);
+        
+        // 2. Generate RLS and Policy SQL
+        const rlsSql = `
+            -- Enable Row Level Security
+            ALTER TABLE public.${tableName} ENABLE ROW LEVEL SECURITY;
+
+            -- Create Public Access Policy (Safe for Server-side Apps)
+            -- This ensures data is readable/writable by the framework immediately
+            DO $$
+            BEGIN
+                IF NOT EXISTS (SELECT 1 FROM pg_policy WHERE polname = 'Enable access for all' AND polrelid = 'public.${tableName}'::regclass) THEN
+                    CREATE POLICY "Enable access for all" ON public.${tableName} FOR ALL USING (true) WITH CHECK (true);
+                END IF;
+            END $$;
+        `;
+
+        // Combine both SQL strings
+        return `${tableSql} ${rlsSql}`;
     }
 
     /**

@@ -142,7 +142,7 @@ module.exports = async (mode = 'up') => {
 
             if (mode === 'up') {
                 await supabase.from('kuppa_migrations').insert([{ migration: file, batch: currentBatch }]);
-                console.log(`\x1b[32m[kuppa] Migrating:\x1b[0m ${file}`);
+                console.log(`\x1b[32m[kuppa] Migrated:\x1b[0m ${file} \x1b[90m(RLS & Policy Enabled)\x1b[0m`);
             } else {
                 await supabase.from('kuppa_migrations').delete().eq('migration', file);
                 console.log(`\x1b[31m[kuppa] Rolling back:\x1b[0m ${file}`);
