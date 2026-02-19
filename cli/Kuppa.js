@@ -111,7 +111,7 @@ else if (command && command.startsWith('make:')) {
                 const migName = `create_${tableLower}_table`;
                 const className = migName.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('');
                 const migContent = getTemplate('Migration', { className, tableName: tableLower });
-                createFile('app/migrations', `${getMigrationTimestamp()}_${migName}.js`, migContent);
+                createFile('app/Migrations', `${getMigrationTimestamp()}_${migName}.js`, migContent);
             }
             break;
 
@@ -119,7 +119,7 @@ else if (command && command.startsWith('make:')) {
             const classNameMig = name.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('');
             const tableNameMig = name.replace('create_', '').replace('_table', '');
             const migContentRaw = getTemplate('Migration', { className: classNameMig, tableName: tableNameMig });
-            createFile('app/migrations', `${getMigrationTimestamp()}_${name}.js`, migContentRaw);
+            createFile('app/Migrations', `${getMigrationTimestamp()}_${name}.js`, migContentRaw);
             break;
 
         case 'make:middleware':
