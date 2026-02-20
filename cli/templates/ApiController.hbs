@@ -22,60 +22,10 @@ class {{name}} extends BaseController {
         }
     }
 
-    /**
-     * [POST] Create a new resource
-     */
-    static async store(process) {
-        try {
-            const payload = process.req.body;
-            // const data = await Model.create(payload);
-            
-            return BaseApi.success(process.res, payload, '{{name}} created successfully', 201);
-        } catch (err) {
-            return BaseApi.error(process.res, err.message);
-        }
-    }
 
-    /**
-     * [GET] Get a single resource by ID
-     */
-    static async show(process) {
-        try {
-            const id = process.req.params.id;
-            // const data = await Model.find(id);
-            return BaseApi.success(process.res, { id }, '{{name}} detail retrieved');
-        } catch (err) {
-            return BaseApi.error(process.res, err.message);
-        }
-    }
+    // do more ...
 
-    /**
-     * [PUT/PATCH] Update an existing resource
-     */
-    static async update(process) {
-        try {
-            const id = process.req.params.id;
-            const payload = process.req.body;
-            // const data = await Model.update(id, payload);
 
-            return BaseApi.success(process.res, { id, ...payload }, '{{name}} updated successfully');
-        } catch (err) {
-            return BaseApi.error(process.res, err.message);
-        }
-    }
-
-    /**
-     * [DELETE] Remove a resource
-     */
-    static async destroy(process) {
-        try {
-            const id = process.req.params.id;
-            // await Model.delete(id);
-            return BaseApi.success(process.res, null, '{{name}} deleted successfully');
-        } catch (err) {
-            return BaseApi.error(process.res, err.message);
-        }
-    }
 }
 
 module.exports = {{name}};

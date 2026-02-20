@@ -15,80 +15,18 @@ class {{name}} extends BaseController {
     static async index(process) {
         try {
             const title: 'List of {{name}}';
-            
+            const description: 'This is description for {{name}}';
+
             return process.res.render('{{name_lower}}.index').with({ 
-                title: 'List of {{name}}' 
+                title,
+                description
             });
         } catch (err) {
             process.next(err);
         }
     }
 
-    /**
-     * [GET] Create Page
-     */
-    static async create(process) {
-        try {
-            return process.res.render('{{name_lower}}.create').with({ 
-                title: 'Create {{name}}' 
-            });
-        } catch (err) {
-            process.next(err);
-        }
-    }
-
-    /**
-     * [POST] Store Action
-     */
-    static async store(process) {
-        try {
-            // Logic: await Model.create(process.req.body);
-            return process.res.redirect('/{{name_lower}}');
-        } catch (err) {
-            process.next(err);
-        }
-    }
-
-    /**
-     * [GET] Edit Page
-     */
-    static async edit(process) {
-        try {
-            const id = process.req.params.id;
-            return process.res.render('{{name_lower}}.edit').with({ 
-                title: 'Edit {{name}}',
-                id
-            });
-        } catch (err) {
-            process.next(err);
-        }
-    }
-
-    /**
-     * [POST] Update Action
-     */
-    static async update(process) {
-        try {
-            const id = process.req.params.id;
-            // Logic: await Model.update(id, process.req.body);
-            return process.res.redirect('/{{name_lower}}');
-        } catch (err) {
-            process.next(err);
-        }
-    }
-
-    /**
-     * [POST] Destroy Action
-     */
-    static async destroy(process) {
-        try {
-            const id = process.req.params.id;
-            // Logic: await Model.delete(id);
-            return process.res.redirect('/{{name_lower}}');
-        } catch (err) {
-            process.next(err);
-        }
-    }
+    // do more ...
 }
 
 module.exports = {{name}};
