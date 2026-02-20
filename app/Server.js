@@ -128,18 +128,31 @@ const checkPort = (port) => {
 
 /**
  * KUPPA SERVER INITIALIZER
- * Optimized with auto-port discovery and error handling
+ * Strict Port Management: Ensures predictable environments and prevents zombie processes.
  */
 const startServer = async () => {
     try {
-        let port = parseInt(process.env.PORT) || 3000;
+        const port = parseInt(process.env.PORT) || 3000;
         const localIp = getLocalIp();
 
-        // --- Port Auto-increment logic ---
-        // Checks if the port is available, if not, increments by 1
-        while (!(await checkPort(port))) {
-            console.warn(`\x1b[33m⚠️  Port ${port} is busy, trying ${port + 1}...\x1b[0m`);
-            port++;
+        // Validate port availability
+        const isAvailable = await checkPort(port);
+
+        if (!isAvailable) {
+            console.clear();
+            console.log('\x1b[31m%s\x1b[0m', '  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            console.log('\x1b[31m\x1b[1m  [PORT CONFLICT] Port ' + port + ' is already in use!\x1b[0m');
+            console.log('\x1b[31m%s\x1b[0m', '  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            console.log(`\n  It looks like another process is already running on port \x1b[1m${port}\x1b[0m.`);
+            console.log('  This usually happens when a previous session was not closed properly.');
+            console.log('\n  \x1b[33m\x1b[1mQuick Solutions:\x1b[0m');
+            console.log(`  1. Press \x1b[36mCtrl+C\x1b[0m in the terminal running the other process.`);
+            console.log(`  2. Force kill the port: \x1b[36mnpx kill-port ${port}\x1b[0m`);
+            console.log(`  3. Manually find the PID: \x1b[36mlsof -i :${port}\x1b[0m then \x1b[36mkill -9 [PID]\x1b[0m`);
+            console.log('\x1b[31m%s\x1b[0m', '\n  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+            
+            // Terminate process to prevent unhandled state
+            process.exit(1);
         }
 
         const server = app.listen(port, () => {
@@ -156,18 +169,14 @@ const startServer = async () => {
             console.log(`\x1b[2mPress Ctrl+C to stop the server\x1b[0m\n`);
         });
 
-        // Handle server-level errors (e.g., EADDRINUSE during runtime)
+        // Handle runtime server errors
         server.on('error', (err) => {
-            if (err.code === 'EADDRINUSE') {
-                console.error(`\x1b[31m[Kuppa Error]\x1b[0m: Port ${port} is already in use.`);
-            } else {
-                console.error(`\x1b[31m[Kuppa Error]\x1b[0m: ${err.message}`);
-            }
+            console.error(`\x1b[31m[Kuppa Runtime Error]:\x1b[0m ${err.message}`);
             process.exit(1);
         });
 
     } catch (error) {
-        console.error(`\x1b[31m[Kuppa Boot Error]\x1b[0m: Failed to initialize server.`);
+        console.error(`\x1b[31m[Kuppa Boot Error]:\x1b[0m Failed to initialize server.`);
         console.error(error.stack);
         process.exit(1);
     }
