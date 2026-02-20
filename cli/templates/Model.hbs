@@ -1,9 +1,10 @@
-const BaseModel = require('../../core/model/BaseModel');
-
 /**
- * {{name}} Model - kuppa Framework
+ * {{name}} Model - Kuppa Framework
  * Handles data logic for the '{{table}}' table
  */
+
+const BaseModel = coreFile('model.BaseModel');
+
 class {{name}} extends BaseModel {
     constructor() {
         /**
@@ -13,14 +14,24 @@ class {{name}} extends BaseModel {
 
         /**
          * Mass Assignment Protection
-         * Only columns listed here can be inserted or updated via the process object.
-         * Example: ['title', 'content', 'user_id']
+         * Only columns listed here can be inserted or updated.
+         * Example: ['title', 'content', 'status']
          */
         this.fillable = []; 
+        
+        /**
+         * Cache TTL (Time To Live) in milliseconds
+         * Default: 5000 (5 seconds)
+         */
+        this.cacheTTL = 5000;
     }
 
     /**
-     * Define custom relationships or logic below
+     * Define custom relationships or accessors below
+     * Example:
+     * static async getActive() {
+     * return await this.where('is_active', true).get();
+     * }
      */
 }
 

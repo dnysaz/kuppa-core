@@ -1,14 +1,18 @@
 /**
  * kuppa Engine - Async Wrapper
  * Integrated with Axios (http), Dot Notation, Named Routes, and Smart API Error Handling
+ * Optimized by Ketut Dana
  */
 const axios = require('axios');
 
 const catchAsync = (fn) => {
     return (req, res, next) => {
+        // Build the "process" object used in Controllers
         const process = {
             req,
             res,
+            next, // FIX: Menambahkan fungsi next ke dalam objek agar process.next(err) tidak error
+            
             // --- Default HTTP Client ---
             http: axios, 
             
@@ -16,52 +20,51 @@ const catchAsync = (fn) => {
             body: req.body,
             params: req.params,
             query: req.query,
-            user: res.locals.user || null,
+            user: res.locals.user || req.user || null,
             
             // --- View Helper ---
-            // Supports dot notation for View AND Layout (e.g., 'auth.login')
             render: (view, data = {}) => {
                 const viewPath = view.replace(/\./g, '/');
-                
                 if (data.layout && typeof data.layout === 'string') {
                     data.layout = data.layout.replace(/\./g, '/');
                 }
-                
                 return res.render(viewPath, data);
             },
 
             // --- API Helper ---
-            // Standard JSON response for API controllers
             json: (data, code = 200) => {
                 return res.status(code).json(data);
             },
             
             // --- Navigation Helper ---
-            // Detects named routes or falls back to raw URL
             redirect: (target) => {
                 const namedRoute = global.kuppaRoutes ? global.kuppaRoutes[target] : null;
                 return res.redirect(namedRoute || target);
             },
             
-            // Compatibility flag for kuppa controllers logic
+            // Compatibility flag
             get error() { return true; }
         };
 
-        // Wrap execution in a Promise to catch sync/async errors
+        // Execution logic
         Promise.resolve(fn(process)).catch((err) => {
-            // Smart Error Responder
+            // Handle KUPPA_DUMP immediately before checking API/Web
+            if (err.message === 'KUPPA_DUMP') {
+                return next(err);
+            }
+
             const isApiRequest = req.originalUrl.startsWith('/api') || req.xhr;
 
             if (isApiRequest) {
-                return res.status(err.status || 500).json({
+                const statusCode = err.status || 500;
+                return res.status(statusCode).json({
                     status: 'error',
                     message: err.message,
-                    // Only show stack trace if APP_DEBUG is true in .env
-                    stack: process.env.APP_DEBUG === 'true' ? err.stack : undefined
+                    stack: global.process.env.APP_DEBUG === 'true' ? err.stack : undefined
                 });
             }
 
-            // Fallback to Express default error handler (for Web/HBS)
+            // Standard error propagation to ExceptionHandler
             next(err);
         });
     };

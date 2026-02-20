@@ -63,8 +63,16 @@ if (command === 'help' || !command || command === '--help') {
     process.exit(0);
 }
 
+// Database & SQL Commands
+if (command === 'sql') {
+    require('./SqlRunner')();
+} else if (command === 'db') {
+    // Mode: List tables or describe specific table
+    require('./DbCheck')(subCommand); 
+}
+
 // Migration Commands
-if (command === 'migrate') {
+else if (command === 'migrate') {
     require('../migrations/Supabase')('up');
 } else if (command === 'migrate:rollback') {
     require('../migrations/Supabase')('down');

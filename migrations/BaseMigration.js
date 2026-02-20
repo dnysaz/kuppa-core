@@ -1,4 +1,5 @@
 const SchemaBuilder = require('./SchemaBuilder');
+const { supabase } = coreFile('config.Database');
 
 /**
  * kuppa.js Base Migration Engine
@@ -7,22 +8,15 @@ const SchemaBuilder = require('./SchemaBuilder');
 class Migration {
     /**
      * Create a new table on the schema.
-     * Automatically handles RLS and Public Access Policies for Supabase.
      */
     createTable(tableName, callback) {
         const table = new SchemaBuilder();
         callback(table);
         
-        // 1. Generate standard table creation SQL
         const tableSql = table.build(tableName);
         
-        // 2. Generate RLS and Policy SQL
         const rlsSql = `
-            -- Enable Row Level Security
             ALTER TABLE public.${tableName} ENABLE ROW LEVEL SECURITY;
-
-            -- Create Public Access Policy (Safe for Server-side Apps)
-            -- This ensures data is readable/writable by the framework immediately
             DO $$
             BEGIN
                 IF NOT EXISTS (SELECT 1 FROM pg_policy WHERE polname = 'Enable access for all' AND polrelid = 'public.${tableName}'::regclass) THEN
@@ -31,29 +25,57 @@ class Migration {
             END $$;
         `;
 
-        // Combine both SQL strings
         return `${tableSql} ${rlsSql}`;
     }
 
-    /**
-     * Drop a table from the schema.
-     */
     dropTable(tableName) {
         return `DROP TABLE IF EXISTS ${tableName} CASCADE;`;
     }
 
-    /**
-     * Rename an existing table.
-     */
     renameTable(from, to) {
         return `ALTER TABLE ${from} RENAME TO ${to};`;
     }
 
-    /**
-     * Add or Modify columns (Manual SQL Fallback)
-     */
     raw(sql) {
         return sql;
+    }
+
+    // --- SYSTEM LOGIC (KONSISTENSI TABEL) ---
+
+    /**
+     * Check if this file has been migrated
+     */
+    async isMigrated(fileName) {
+        try {
+            // Pastikan tabel: kuppa_migrations, kolom: migration
+            const { data, error } = await supabase
+                .from('kuppa_migrations')
+                .select('id')
+                .eq('migration', fileName)
+                .maybeSingle(); // Menggunakan maybeSingle agar tidak throw error jika kosong
+            
+            return !!data;
+        } catch (e) {
+            console.error(`[kuppa] Check failed for ${fileName}:`, e.message);
+            return false;
+        }
+    }
+
+    /**
+     * Record the migration success
+     */
+    async markAsMigrated(fileName) {
+        // Harus insert ke tabel yang sama: kuppa_migrations
+        const { error } = await supabase
+            .from('kuppa_migrations')
+            .insert([{ 
+                migration: fileName, 
+                batch: 1 
+            }]);
+        
+        if (error) {
+            console.error(`[kuppa] Failed to record migration: ${error.message}`);
+        }
     }
 }
 

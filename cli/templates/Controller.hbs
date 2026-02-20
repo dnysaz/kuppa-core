@@ -1,72 +1,52 @@
-const BaseController = require('../../core/controller/BaseController');
-// const { supabase } = require('../../core/config/Database');
-// const Model = require('../Models/YourModel');
-
-
 /**
- * {{name}} - kuppa Framework
- * Generated for Full CRUD Operations
+ * {{name}} - Kuppa Framework
+ * Standardized for The minimalist javascript supabase framework
  */
+
+// Core & Application Dependencies
+const BaseController = coreFile('controller.BaseController');
+// const Model       = appFile('Models.{{name}}'); 
+
 class {{name}} extends BaseController {
 
     /**
      * [GET] Index Page
-     * Tip: Use await process.http.get('url') to fetch external data.
      */
     static async index(process) {
         try {
-            process.render('{{name_lower}}.index', { 
+            const title: 'List of {{name}}';
+            
+            return process.res.render('{{name_lower}}.index').with({ 
                 title: 'List of {{name}}' 
             });
         } catch (err) {
-            console.error('[kuppa Error]', err.message);
+            process.next(err);
         }
-
-        process.error;
     }
 
     /**
      * [GET] Create Page
      */
     static async create(process) {
-        process.render('{{name_lower}}.create', { 
-            title: 'Create New {{name}}' 
-        });
-
-        process.error;
+        try {
+            return process.res.render('{{name_lower}}.create').with({ 
+                title: 'Create {{name}}' 
+            });
+        } catch (err) {
+            process.next(err);
+        }
     }
 
     /**
      * [POST] Store Action
      */
     static async store(process) {
-        const controller = new {{name}}();
         try {
-            // Example Upload: const path = await controller.upload(process, { folder: '{{name_lower}}', field: 'image' });
-            process.redirect('{{name_lower}}');
+            // Logic: await Model.create(process.req.body);
+            return process.res.redirect('/{{name_lower}}');
         } catch (err) {
-            console.error('[kuppa Error]', err.message);
+            process.next(err);
         }
-
-        process.error;
-    }
-
-    /**
-     * [GET] Show Detail Page
-     */
-    static async show(process) {
-        try {
-            const id = process.params.id;
-
-            process.render('{{name_lower}}.show', { 
-                title: 'Detail of {{name}}',
-                id: id
-            });
-        } catch (err) {
-            console.error('[kuppa Error]', err.message);
-        }
-
-        process.error;
     }
 
     /**
@@ -74,50 +54,40 @@ class {{name}} extends BaseController {
      */
     static async edit(process) {
         try {
-            const id = process.params.id;
-
-            process.render('{{name_lower}}.edit', { 
+            const id = process.req.params.id;
+            return process.res.render('{{name_lower}}.edit').with({ 
                 title: 'Edit {{name}}',
-                id: id
+                id
             });
         } catch (err) {
-            console.error('[kuppa Error]', err.message);
+            process.next(err);
         }
-
-        process.error;
     }
 
     /**
-     * [POST/PUT] Update Action
+     * [POST] Update Action
      */
     static async update(process) {
-        const controller = new {{name}}();
         try {
-            const id = process.params.id;
-            // Example Upload: const path = await controller.upload(process, { folder: '{{name_lower}}', field: 'image' });
-            
-            process.redirect('{{name_lower}}');
+            const id = process.req.params.id;
+            // Logic: await Model.update(id, process.req.body);
+            return process.res.redirect('/{{name_lower}}');
         } catch (err) {
-            console.error('[kuppa Error]', err.message);
+            process.next(err);
         }
-
-        process.error;
     }
 
     /**
-     * [POST/DELETE] Destroy Action
+     * [POST] Destroy Action
      */
     static async destroy(process) {
         try {
-            const id = process.params.id;
-
+            const id = process.req.params.id;
             // Logic: await Model.delete(id);
-            process.redirect('{{name_lower}}');
+            return process.res.redirect('/{{name_lower}}');
         } catch (err) {
-            console.error('[kuppa Error]', err.message);
+            process.next(err);
         }
-
-        process.error;
     }
 }
 

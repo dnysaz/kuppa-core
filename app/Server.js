@@ -1,26 +1,40 @@
+/**
+ * Kuppa Engine - Server Core
+ * Optimized by Ketut Dana
+ * Standardized for The minimalist javascript supabase framework
+ */
+
+// 1. BOOTSTRAP: Load Autoloader & Environment First
+require('../Autoload'); 
 const path = require('path');
 const rootDir = path.join(__dirname, '../../');
-
-// 1. LOAD DOTENV FIRST
 require('dotenv').config({ path: path.join(rootDir, '.env') });
 
+// 2. CORE MODULES
 const express = require('express');
 const hbs = require('hbs');
 const cookieParser = require('cookie-parser');
-const { registerHelpers } = require('./Helper');
-const GlobalMiddleware = require('../../app/Middleware/GlobalMiddleware');
+const os = require('os');
+const net = require('net');
+
+// 3. INTERNAL ENGINE HELPERS (Using coreFile)
+const { registerHelpers } = coreFile('app.Helper');
+const Engine = coreFile('app.Engine');
+const GlobalMiddleware = coreFile('middleware.GlobalMiddleware');
+const ExceptionHandler = coreFile('middleware.ExceptionHandler');
 
 const app = express();
 
 /**
- * kuppa Engine - Server Core
- * Optimized by Ketut Dana
+ * HIGH PERFORMANCE MIDDLEWARE
+ * Loaded immediately after app initialization to handle compression
  */
+app.use(require('compression')());
 
-// --- INITIALIZE HELPERS ---
+// --- INITIALIZE VIEW HELPERS ---
 registerHelpers();
 
-// --- LIVERELOAD SETUP ---
+// --- LIVERELOAD SETUP (Development Only) ---
 if (process.env.APP_DEBUG === 'true') {
     const livereload = require("livereload");
     const connectLiveReload = require("connect-livereload");
@@ -37,82 +51,126 @@ if (process.env.APP_DEBUG === 'true') {
 app.set('view engine', 'hbs');
 app.set('views', path.join(rootDir, 'views'));
 app.set('view options', { layout: 'layouts/app' });
+if (process.env.APP_DEBUG !== 'true') app.enable('view cache');
+
+// Registration of Partials and Components
 hbs.registerPartials(path.join(rootDir, 'views/partials'));
 hbs.registerPartials(path.join(rootDir, 'views/components')); 
 
-// --- MIDDLEWARES ---
+// --- GLOBAL MIDDLEWARES ---
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static(path.join(rootDir, 'public')));
 
-if (process.env.APP_DEBUG !== 'true') {
-    app.enable('view cache');
-}
-
 /**
- * GLOBAL ENGINE MIDDLEWARE (Performance & State)
+ * ENGINE CORE INJECTION
+ * Injecting fluent API (.with) and core response features
  */
-app.use((req, res, next) => {
-    const start = process.hrtime();
-    
-    // Inject Basic Global Variables
-    res.locals.supabaseActive = !!(process.env.SUPABASE_URL && process.env.SUPABASE_KEY);
-    res.locals.useSupabase = process.env.USE_SUPABASE !== 'false';
-    res.locals.appName = process.env.APP_NAME || 'kuppa.js';
-    res.locals.appVersion = process.env.APP_VERSION || '0.5.0';
-
-    // Performance Profiler Helper
-    const originalRender = res.render;
-    res.render = function (view, options, callback) {
-        const diff = process.hrtime(start);
-        res.locals.renderTime = (diff[0] + diff[1] / 1e9).toFixed(3);
-        originalRender.call(this, view, options, callback);
-    };
-    next();
-});
+app.use(Engine);
 
 /**
- * APP GLOBAL MIDDLEWARE
- * Logic for Database and User Auth Synchronization
+ * DATABASE & SYSTEM MIDDLEWARE
+ * Ensuring database connection and global locals are ready
  */
 app.use(GlobalMiddleware);
 
-// --- ROUTES SEPARATION ---
-// Opinionated: Keep API and Web routes separate
-app.use('/api', require(path.join(rootDir, 'routes/api'))); // API Endpoints
-app.use('/', require(path.join(rootDir, 'routes/web')));    // Web Interface
+// --- ROUTE REGISTRATION ---
+app.use('/api', require(path.join(rootDir, 'routes/api')));
+app.use('/', require(path.join(rootDir, 'routes/web')));
 
-// --- 404 CATCHER ---
+// --- 404 HANDLER ---
 app.use((req, res, next) => {
     const err = new Error(`The path "${req.originalUrl}" was not found.`);
     err.status = 404;
-    
-    // Smart 404: If request starts with /api, send JSON. Otherwise, render 404 page.
     if (req.originalUrl.startsWith('/api')) {
-        return res.status(404).json({
-            status: 404,
-            message: err.message
-        });
+        return res.status(404).json({ status: 404, message: err.message });
     }
-    
     next(err); 
 });
 
-// --- ERROR HANDLING ---
-app.use(require('../middleware/ExceptionHandler')); 
+// --- GLOBAL EXCEPTION HANDLER ---
+app.use(ExceptionHandler); 
+
+// --- NETWORK UTILITIES ---
+/**
+ * Get Local IPv4 Address
+ * @returns {string}
+ */
+const getLocalIp = () => {
+    const interfaces = os.networkInterfaces();
+    for (const devName in interfaces) {
+        const iface = interfaces[devName];
+        for (let i = 0; i < iface.length; i++) {
+            const alias = iface[i];
+            if (alias.family === 'IPv4' && !alias.internal) return alias.address;
+        }
+    }
+    return '0.0.0.0';
+};
 
 /**
- * SERVER STARTING
+ * Port Availability Checker
+ * @param {number} port 
+ * @returns {Promise<boolean>}
  */
-const startServer = () => {
-    const PORT = process.env.PORT || 3000;
-    app.listen(PORT, () => {
-        console.log(`🚀 Kuppa.JS running at http://localhost:${PORT}`);
-        console.log(`Hello Kuppa!`);
-        console.log(`The Minimalist Javascript Supabase Framework`);
-
+const checkPort = (port) => {
+    return new Promise((resolve) => {
+        const server = net.createServer();
+        server.once('error', () => resolve(false));
+        server.once('listening', () => {
+            server.close();
+            resolve(true);
+        });
+        server.listen(port);
     });
+};
+
+/**
+ * KUPPA SERVER INITIALIZER
+ * Optimized with auto-port discovery and error handling
+ */
+const startServer = async () => {
+    try {
+        let port = parseInt(process.env.PORT) || 3000;
+        const localIp = getLocalIp();
+
+        // --- Port Auto-increment logic ---
+        // Checks if the port is available, if not, increments by 1
+        while (!(await checkPort(port))) {
+            console.warn(`\x1b[33m⚠️  Port ${port} is busy, trying ${port + 1}...\x1b[0m`);
+            port++;
+        }
+
+        const server = app.listen(port, () => {
+            console.clear();
+            console.log(`\x1b[32m🚀 Kuppa.JS is ready!\x1b[0m`);
+            console.log(`----------------------------------------------`);
+            console.log(`\x1b[36mLocal:\x1b[0m         http://localhost:${port}`);
+            console.log(`\x1b[36mNetwork:\x1b[0m       http://${localIp}:${port}`);
+            console.log(`----------------------------------------------`);
+            console.log(`Environment:   \x1b[35m${process.env.APP_ENV || 'development'}\x1b[0m`);
+            console.log(`Debug Mode:    \x1b[35m${process.env.APP_DEBUG || 'false'}\x1b[0m`);
+            console.log(`----------------------------------------------`);
+            console.log(`Hello Kuppa!`);
+            console.log(`\x1b[2mPress Ctrl+C to stop the server\x1b[0m\n`);
+        });
+
+        // Handle server-level errors (e.g., EADDRINUSE during runtime)
+        server.on('error', (err) => {
+            if (err.code === 'EADDRINUSE') {
+                console.error(`\x1b[31m[Kuppa Error]\x1b[0m: Port ${port} is already in use.`);
+            } else {
+                console.error(`\x1b[31m[Kuppa Error]\x1b[0m: ${err.message}`);
+            }
+            process.exit(1);
+        });
+
+    } catch (error) {
+        console.error(`\x1b[31m[Kuppa Boot Error]\x1b[0m: Failed to initialize server.`);
+        console.error(error.stack);
+        process.exit(1);
+    }
 };
 
 module.exports = { app, startServer };

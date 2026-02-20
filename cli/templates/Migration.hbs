@@ -1,16 +1,17 @@
-const Migration = require('../../core/migrations/BaseMigration');
-
 /**
- * {{className}} Migration - kuppa Framework
+ * {{className}} Migration - Kuppa Framework
  * Driven by Supabase (PostgreSQL)
  */
+
+const Migration = coreFile('migrations.BaseMigration');
+
 class {{className}} extends Migration {
     /**
      * Run the migrations.
      */
     async up() {
         return this.createTable('{{tableName}}', (table) => {
-            // Primary Key: Recommended to use UUID for kuppa
+            // Primary Key: Recommended to use UUID for Kuppa
             table.id(); 
             
             // table.string('title').nullable(false);
@@ -19,7 +20,7 @@ class {{className}} extends Migration {
             // table.boolean('is_active').default(true);
             // table.uuid('user_id').references('users', 'id');
             
-            // Default kuppa timestamps (created_at, updated_at)
+            // Default Kuppa timestamps (created_at, updated_at)
             table.timestamps();
         });
     }

@@ -1,17 +1,17 @@
-const BaseController = require('../../../core/controller/BaseController');
-const BaseApi = require('../../../core/api/BaseApiController');
-// const { supabase } = require('../../core/config/Database');
-
-
 /**
- * {{name}} - kuppa API Framework
- * Standardized JSON CRUD Operations with BaseController Inheritance
+ * {{name}} - Kuppa API Framework
+ * Standardized JSON CRUD Operations
  */
+
+// Core Dependencies
+const BaseController = coreFile('controller.BaseController');
+const BaseApi        = coreFile('api.BaseApiController');
+// const Model       = appFile('Models.{{name}}');
+
 class {{name}} extends BaseController {
 
     /**
      * [GET] List all resources
-     * Tip: Access external APIs via process.http.get()
      */
     static async index(process) {
         try {
@@ -26,10 +26,9 @@ class {{name}} extends BaseController {
      * [POST] Create a new resource
      */
     static async store(process) {
-        const controller = new {{name}}();
         try {
-            // const path = await controller.upload(process, { folder: '{{name_lower}}', field: 'file' });
-            const payload = process.body;
+            const payload = process.req.body;
+            // const data = await Model.create(payload);
             
             return BaseApi.success(process.res, payload, '{{name}} created successfully', 201);
         } catch (err) {
@@ -42,7 +41,8 @@ class {{name}} extends BaseController {
      */
     static async show(process) {
         try {
-            const id = process.params.id;
+            const id = process.req.params.id;
+            // const data = await Model.find(id);
             return BaseApi.success(process.res, { id }, '{{name}} detail retrieved');
         } catch (err) {
             return BaseApi.error(process.res, err.message);
@@ -53,12 +53,10 @@ class {{name}} extends BaseController {
      * [PUT/PATCH] Update an existing resource
      */
     static async update(process) {
-        const controller = new {{name}}();
         try {
-            const id = process.params.id;
-            const payload = process.body;
-            
-            // Example: const newFile = await controller.upload(process, { folder: '{{name_lower}}', field: 'file' });
+            const id = process.req.params.id;
+            const payload = process.req.body;
+            // const data = await Model.update(id, payload);
 
             return BaseApi.success(process.res, { id, ...payload }, '{{name}} updated successfully');
         } catch (err) {
@@ -71,7 +69,8 @@ class {{name}} extends BaseController {
      */
     static async destroy(process) {
         try {
-            const id = process.params.id;
+            const id = process.req.params.id;
+            // await Model.delete(id);
             return BaseApi.success(process.res, null, '{{name}} deleted successfully');
         } catch (err) {
             return BaseApi.error(process.res, err.message);

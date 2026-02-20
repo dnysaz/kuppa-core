@@ -5,14 +5,15 @@ global.kuppaCache = global.kuppaCache || {};
 
 /**
  * kuppa Engine - BaseModel
- * Optimized Eloquent-style ORM with Smart Cache & Security
+ * Optimized Eloquent-style ORM with Smart Cache, Security & Relations
  */
 class BaseModel {
     constructor(tableName) {
         this.table = tableName;
         this.queryInstance = null;
-        this.cacheTTL = 5000; // 5 seconds (Cukup untuk performa, pendek untuk akurasi)
-        this.fillable = [];    
+        this.cacheTTL = 5000; // 5 seconds
+        this.fillable = [];
+        this.selectedColumns = '*'; // Default select all
     }
 
     /**
@@ -34,7 +35,7 @@ class BaseModel {
      */
     _getQuery() {
         if (!this.queryInstance) {
-            this.queryInstance = supabase.from(this.table).select('*');
+            this.queryInstance = supabase.from(this.table).select(this.selectedColumns);
         }
         return this.queryInstance;
     }
@@ -49,6 +50,28 @@ class BaseModel {
                 delete global.kuppaCache[key];
             }
         });
+    }
+
+    // --- RELATIONSHIP & SELECTION ---
+
+    /**
+     * Eager load relations
+     * Example: .with('profile', 'posts(title, content)')
+     */
+    with(...relations) {
+        if (relations.length > 0) {
+            const relationString = relations.join(', ');
+            this.selectedColumns = `*, ${relationString}`;
+        }
+        return this;
+    }
+
+    /**
+     * Select specific columns
+     */
+    select(columns = '*') {
+        this.selectedColumns = columns;
+        return this;
     }
 
     // --- QUERY BUILDERS ---
@@ -73,11 +96,11 @@ class BaseModel {
     async get() {
         try {
             const { data, error } = await this._getQuery();
-            this.queryInstance = null; // Reset builder
+            this._resetBuilder();
             if (error) throw error;
             return data;
         } catch (error) {
-            this.queryInstance = null;
+            this._resetBuilder();
             throw error;
         }
     }
@@ -85,7 +108,7 @@ class BaseModel {
     async first() {
         try {
             const { data, error } = await this._getQuery().single();
-            this.queryInstance = null;
+            this._resetBuilder();
             
             // Handle error 'no rows found' gracefully
             if (error && error.code === 'PGRST116') return null;
@@ -93,13 +116,13 @@ class BaseModel {
             
             return data;
         } catch (error) {
-            this.queryInstance = null;
+            this._resetBuilder();
             throw error;
         }
     }
 
     async find(id) {
-        const cacheKey = `${this.table}:id:${id}`;
+        const cacheKey = `${this.table}:id:${id}:${this.selectedColumns}`;
         const now = Date.now();
 
         // Check Cache
@@ -123,7 +146,7 @@ class BaseModel {
     // --- PERSISTENCE METHODS ---
 
     async create(payload) {
-        this.queryInstance = null;
+        this._resetBuilder();
         const cleanPayload = this._filterFillable(payload);
 
         const { data, error } = await supabase
@@ -139,7 +162,7 @@ class BaseModel {
     }
 
     async update(id, payload) {
-        this.queryInstance = null;
+        this._resetBuilder();
         const cleanPayload = this._filterFillable(payload);
 
         const { data, error } = await supabase
@@ -155,7 +178,7 @@ class BaseModel {
     }
 
     async delete(id) {
-        this.queryInstance = null;
+        this._resetBuilder();
         const { error } = await supabase
             .from(this.table)
             .delete()
@@ -165,6 +188,14 @@ class BaseModel {
 
         this._clearTableCache();
         return true;
+    }
+
+    /**
+     * Reset the query builder state
+     */
+    _resetBuilder() {
+        this.queryInstance = null;
+        this.selectedColumns = '*';
     }
 }
 
