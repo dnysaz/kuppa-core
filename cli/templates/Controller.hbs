@@ -14,8 +14,8 @@ class {{name}} extends BaseController {
      */
     static async index(process) {
         try {
-            const title: 'List of {{name}}';
-            const description: 'This is description for {{name}}';
+            const title       = 'List of {{name}}';
+            const description = 'This is description for {{name}}';
 
             return process.res.render('{{name_lower}}.index').with({ 
                 title,
