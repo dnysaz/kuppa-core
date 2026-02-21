@@ -32,8 +32,6 @@ GRANT EXECUTE ON FUNCTION kuppa_execute_sql(text) TO postgres;
     try {
         if (!tableName) {
             console.log('\x1b[36m[kuppa]\x1b[0m Fetching tables...');
-            console.log('\x1b[33m[kuppa]\x1b[0m No tables found in public schema.');
-            console.log('\x1b[36m[tip]\x1b[0m Run \x1b[1m"kuppa migrate"\x1b[0m to create your first tables.\n');
             
             const query = "SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = 'public' ORDER BY tablename ASC";
 
