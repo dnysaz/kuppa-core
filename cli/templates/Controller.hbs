@@ -1,6 +1,7 @@
 /**
  * {{name}} - Kuppa Framework
  * Standardized for The minimalist javascript supabase framework
+ * Refactored with process.view() by Ketut Dana
  */
 
 // Core & Application Dependencies
@@ -14,10 +15,13 @@ class {{name}} extends BaseController {
      */
     static async index(process) {
         try {
+            // Context & Metadata
             const title       = 'List of {{name}}';
             const description = 'This is description for {{name}}';
+            const view        = '{{name_lower}}.index';
 
-            return process.res.render('{{name_lower}}.index').with({ 
+            // Using the new Fluent View Interface
+            return process.view(view).with({ 
                 title,
                 description
             });
@@ -26,7 +30,21 @@ class {{name}} extends BaseController {
         }
     }
 
-    // do more ...
+    /**
+     * [GET] Create Page
+     */
+    static async create(process) {
+        try {
+            const title = 'Create New {{name}}';
+            const view  = '{{name_lower}}.create';
+
+            return process.view(view).with({ title });
+        } catch (err) {
+            process.next(err);
+        }
+    }
+
+    // Add more logic for store, edit, update, destroy...
 }
 
 module.exports = {{name}};

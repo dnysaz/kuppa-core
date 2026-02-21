@@ -1,6 +1,7 @@
 /**
  * {{className}} Migration - Kuppa Framework
- * Driven by Supabase (PostgreSQL)
+ * Standardized for Supabase PostgreSQL
+ * Updated by Ketut Dana
  */
 
 const Migration = coreFile('migrations.BaseMigration');
@@ -11,17 +12,31 @@ class {{className}} extends Migration {
      */
     async up() {
         return this.createTable('{{tableName}}', (table) => {
-            // Primary Key: Recommended to use UUID for Kuppa
+            // Primary Key: Defaulting to UUID for Supabase optimization
             table.id(); 
             
-            // table.string('title').nullable(false);
-            // table.text('description');
-            // table.integer('price').default(0);
-            // table.boolean('is_active').default(true);
-            // table.uuid('user_id').references('users', 'id');
+            /**
+             * Column Examples:
+             * table.string('name', 255).nullable(false);
+             * table.text('bio');
+             * table.integer('stock').default(0);
+             * table.boolean('is_published').default(false);
+             * table.decimal('price', 15, 2);
+             */
             
+            /**
+             * Relationships & Foreign Keys:
+             * table.uuid('user_id').references('users', 'id').onDelete('CASCADE');
+             */
+
             // Default Kuppa timestamps (created_at, updated_at)
             table.timestamps();
+            
+            /**
+             * Indexes for Performance:
+             * table.index(['column_name']);
+             * table.unique(['email']);
+             */
         });
     }
 
@@ -29,6 +44,7 @@ class {{className}} extends Migration {
      * Reverse the migrations.
      */
     async down() {
+        // Safe Drop: Ensure table is removed cleanly
         return this.dropTable('{{tableName}}');
     }
 }

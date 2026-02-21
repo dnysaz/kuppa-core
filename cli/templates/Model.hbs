@@ -1,6 +1,7 @@
 /**
  * {{name}} Model - Kuppa Framework
  * Handles data logic for the '{{table}}' table
+ * Standardized by Ketut Dana
  */
 
 const BaseModel = coreFile('model.BaseModel');
@@ -13,11 +14,23 @@ class {{name}} extends BaseModel {
         super('{{table}}');
 
         /**
+         * Primary Key Configuration
+         * Default is 'id'
+         */
+        this.primaryKey = 'id';
+
+        /**
          * Mass Assignment Protection
          * Only columns listed here can be inserted or updated.
-         * Example: ['title', 'content', 'status']
          */
         this.fillable = []; 
+
+        /**
+         * Hidden Columns
+         * These columns will be excluded from JSON responses.
+         * Example: ['password', 'secret_token']
+         */
+        this.hidden = [];
         
         /**
          * Cache TTL (Time To Live) in milliseconds
@@ -27,10 +40,10 @@ class {{name}} extends BaseModel {
     }
 
     /**
-     * Define custom relationships or accessors below
-     * Example:
-     * static async getActive() {
-     * return await this.where('is_active', true).get();
+     * Define custom relationships or logic below
+     * * Example:
+     * static async getLatest() {
+     * return await this.orderBy('created_at', 'desc').limit(10).get();
      * }
      */
 }

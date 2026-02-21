@@ -11,13 +11,14 @@ class BaseModel {
     constructor(tableName) {
         this.table = tableName;
         this.queryInstance = null;
-        this.cacheTTL = 5000; // 5 seconds
+        this.cacheTTL = 5000; // 5 seconds default
         this.fillable = [];
-        this.selectedColumns = '*'; // Default select all
+        this.selectedColumns = '*';
     }
 
     /**
      * Filter payload based on allowed columns
+     * @private
      */
     _filterFillable(payload) {
         if (!this.fillable || this.fillable.length === 0) return payload;
@@ -32,6 +33,7 @@ class BaseModel {
 
     /**
      * Initialize or get the current query builder
+     * @private
      */
     _getQuery() {
         if (!this.queryInstance) {
@@ -41,7 +43,8 @@ class BaseModel {
     }
 
     /**
-     * Clear all cache related to this table
+     * Clear all cache related to this table (Invalidation)
+     * @private
      */
     _clearTableCache() {
         const prefix = `${this.table}:`;
@@ -52,12 +55,28 @@ class BaseModel {
         });
     }
 
+    /**
+     * Generic Cache Wrapper to reduce boilerplate
+     * @private
+     */
+    async _withCache(cacheKey, fetchFunction) {
+        const now = Date.now();
+        const fullKey = `${this.table}:${cacheKey}:${this.selectedColumns}`;
+
+        if (global.kuppaCache[fullKey] && (now - global.kuppaCache[fullKey].time < this.cacheTTL)) {
+            return global.kuppaCache[fullKey].data;
+        }
+
+        const data = await fetchFunction();
+        
+        if (data) {
+            global.kuppaCache[fullKey] = { data, time: now };
+        }
+        return data;
+    }
+
     // --- RELATIONSHIP & SELECTION ---
 
-    /**
-     * Eager load relations
-     * Example: .with('profile', 'posts(title, content)')
-     */
     with(...relations) {
         if (relations.length > 0) {
             const relationString = relations.join(', ');
@@ -66,9 +85,6 @@ class BaseModel {
         return this;
     }
 
-    /**
-     * Select specific columns
-     */
     select(columns = '*') {
         this.selectedColumns = columns;
         return this;
@@ -91,7 +107,32 @@ class BaseModel {
         return this;
     }
 
-    // --- FETCH METHODS ---
+    // --- SMART FETCH METHODS ---
+
+    /**
+     * Find by dynamic column
+     * Usage: User.findBy('email', 'ketut@example.com')
+     */
+    async findBy(column, value) {
+        return await this._withCache(`findBy:${column}:${value}`, async () => {
+            return await this.where(column, value).first();
+        });
+    }
+
+    /**
+     * Find by multiple conditions
+     * Usage: User.findWhere({ status: 'active', role: 'admin' })
+     */
+    async findWhere(conditions = {}) {
+        const cacheKey = `findWhere:${JSON.stringify(conditions)}`;
+        return await this._withCache(cacheKey, async () => {
+            let query = this;
+            Object.keys(conditions).forEach(key => {
+                query = query.where(key, conditions[key]);
+            });
+            return await query.first();
+        });
+    }
 
     async get() {
         try {
@@ -110,7 +151,7 @@ class BaseModel {
             const { data, error } = await this._getQuery().single();
             this._resetBuilder();
             
-            // Handle error 'no rows found' gracefully
+            // Handle 'PGRST116' (no rows) gracefully
             if (error && error.code === 'PGRST116') return null;
             if (error) throw error;
             
@@ -122,21 +163,9 @@ class BaseModel {
     }
 
     async find(id) {
-        const cacheKey = `${this.table}:id:${id}:${this.selectedColumns}`;
-        const now = Date.now();
-
-        // Check Cache
-        if (global.kuppaCache[cacheKey] && (now - global.kuppaCache[cacheKey].time < this.cacheTTL)) {
-            return global.kuppaCache[cacheKey].data;
-        }
-
-        const data = await this.where('id', id).first();
-        
-        if (data) {
-            global.kuppaCache[cacheKey] = { data: data, time: now };
-        }
-        
-        return data;
+        return await this._withCache(`id:${id}`, async () => {
+            return await this.where('id', id).first();
+        });
     }
 
     async all() {
@@ -190,9 +219,6 @@ class BaseModel {
         return true;
     }
 
-    /**
-     * Reset the query builder state
-     */
     _resetBuilder() {
         this.queryInstance = null;
         this.selectedColumns = '*';

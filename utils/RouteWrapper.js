@@ -1,6 +1,7 @@
 /**
  * kuppa Engine - Route Wrapper
- * Optimized for Grouping & Chaining
+ * Optimized for Grouping, Chaining, and Precise Error Messaging.
+ * Handles undefined controller methods gracefully without crashing the app.
  */
 const catchAsync = require('./CatchAsync');
 
@@ -14,10 +15,21 @@ const wrap = (router) => {
         
         router[method] = (path, ...callbacks) => {
             const wrappedCallbacks = callbacks.map((callback) => {
+                // Check if the callback is undefined (common when a method is commented out)
+                if (typeof callback === 'undefined') {
+                    return catchAsync(async (process) => {
+                        // Throw a professional error that will be caught by KuppaJs Debugger
+                        const error = new Error(`The requested method for route [${path}] is undefined. Please check if the function exists and is exported in your Controller.`);
+                        error.status = 501; // Not Implemented
+                        throw error;
+                    });
+                }
+
+                // If it's a valid function, wrap it with catchAsync for global error handling
                 return typeof callback === 'function' ? catchAsync(callback) : callback;
             });
 
-            // Register to Express
+            // Register the route to Express/Router
             originalMethod(path, ...wrappedCallbacks);
             
             // Return object for .name() chaining

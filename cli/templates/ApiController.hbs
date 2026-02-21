@@ -1,11 +1,11 @@
 /**
  * {{name}} - Kuppa API Framework
  * Standardized JSON CRUD Operations
+ * Updated with process.json() by Ketut Dana
  */
 
-// Core Dependencies
+// Core & Application Dependencies
 const BaseController = coreFile('controller.BaseController');
-const BaseApi        = coreFile('api.BaseApiController');
 // const Model       = appFile('Models.yourModel');
 
 class {{name}} extends BaseController {
@@ -15,17 +15,47 @@ class {{name}} extends BaseController {
      */
     static async index(process) {
         try {
-            // const data = await Model.all();
-            return BaseApi.success(process.res, [], '{{name}} list retrieved successfully');
+            const message = '{{name}} list retrieved successfully';
+            
+            // Logic: const data = await Model.all();
+            const data = []; 
+
+            return process.json({
+                status: 'success',
+                message,
+                data
+            });
         } catch (err) {
-            return BaseApi.error(process.res, err.message);
+            return process.json({
+                status: 'error',
+                message: err.message
+            }, 500);
         }
     }
 
+    /**
+     * [POST] Store a new resource
+     */
+    static async store(process) {
+        try {
+            const message = '{{name}} created successfully';
+            
+            // Logic: const newItem = await Model.create(process.body);
+
+            return process.json({
+                status: 'success',
+                message,
+                data: process.body
+            }, 201);
+        } catch (err) {
+            return process.json({
+                status: 'error',
+                message: err.message
+            }, 400);
+        }
+    }
 
     // do more ...
-
-
 }
 
 module.exports = {{name}};

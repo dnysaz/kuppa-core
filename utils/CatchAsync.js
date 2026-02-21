@@ -11,7 +11,7 @@ const catchAsync = (fn) => {
         const process = {
             req,
             res,
-            next, // FIX: Menambahkan fungsi next ke dalam objek agar process.next(err) tidak error
+            next, 
             
             // --- Default HTTP Client ---
             http: axios, 
@@ -22,7 +22,29 @@ const catchAsync = (fn) => {
             query: req.query,
             user: res.locals.user || req.user || null,
             
-            // --- View Helper ---
+            /**
+             * --- View Helper (Laravel Style) ---
+             * Simplified syntax: process.view('path.to.file').with({ data })
+             */
+            view: (viewPath, data = {}) => {
+                const formattedPath = viewPath.replace(/\./g, '/');
+                
+                // Return fluent interface for .with()
+                return {
+                    with: (additionalData) => {
+                        const finalData = { ...data, ...additionalData };
+                        
+                        // Handle dot notation in layout if specified
+                        if (finalData.layout && typeof finalData.layout === 'string') {
+                            finalData.layout = finalData.layout.replace(/\./g, '/');
+                        }
+                        
+                        return res.render(formattedPath, finalData);
+                    }
+                };
+            },
+
+            // --- Legacy Render Helper (Backward Compatibility) ---
             render: (view, data = {}) => {
                 const viewPath = view.replace(/\./g, '/');
                 if (data.layout && typeof data.layout === 'string') {
