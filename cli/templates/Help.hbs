@@ -1,22 +1,40 @@
-[1m[32mKuppa.JS[0m CLI Tool v1.0.0
-    [33mUsage:[0m
-      node kuppa [command] [arguments] [flags]
+  [38;5;208m██╗  ██╗██╗   ██╗██████╗ ██████╗  █████╗ [0m
+  [38;5;208m██║ ██╔╝██║   ██║██╔══██╗██╔══██╗██╔══██╗[0m
+  [38;5;208m█████╔╝ ██║   ██║██████╔╝██████╔╝███████║[0m
+  [38;5;208m██╔═██╗ ██║   ██║██╔═══╝ ██╔═══╝ ██╔══██║[0m
+  [38;5;208m██║  ██╗╚██████╔╝██║     ██║     ██║  ██║[0m
+  [38;5;208m╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚═╝     ╚═╝  ╚═╝[0m
+  [1m[32mThe minimalist javascript supabase framework[0m CLI Tool v1.0.0
 
-    [33mCore Commands:[0m
-      [1mrun:install[0m           Sync & install kuppa core engine
-      [1mrun:update[0m            Update kuppa core engine to latest version
+  [33mUSAGE:[0m
+    [1mkuppa [command] [options][0m
 
-    [33mGenerators (make):[0m
-      [1mmake:controller [N][0m   Create a new CRUD controller. Use [36m--api[0m for JSON.
-      [1mmake:model [N] [-m][0m   Create a model. Use [36m-m[0m to generate a migration
-      [1mmake:migration [N][0m    Create a new migration file in app/migrations
-      [1mmake:middleware [N][0m   Create a new middleware in app/Middleware
+  [33mCORE COMMANDS:[0m
+    [32mrun:install[0m           [90mSync & install Kuppa core engine[0m
+    [32mrun:update[0m            [90mUpdate core engine to latest version[0m
+    [32mkey:generate[0m          [90mGenerate a secure 64-char APP_KEY[0m
 
-    [33mDatabase (migrate):[0m
-      [1mmigrate[0m               Run all pending migrations to Supabase
-      [1mmigrate:status[0m        Check the status of all migrations
-      [1mmigrate:rollback[0m      Rollback the last migration batch
-      [1mmigrate:fresh[0m         Drop all tables and re-run all migrations
+  [33mAPPLICATION SETUP (Up/Down):[0m
+    [32mup[0m                    [90mTake the application out of maintenance mode[0m
+    [32mdown [msg][0m            [90mPut the application into maintenance mode[0m
+    [32mroute:list[0m            [90mList all registered WEB and API routes[0m
+    [32mclear:cache[0m           [90mFlush native memory cache (auto-managed)[0m
 
-    [33mOptions:[0m
-      [36m--help, help[0m          Display this help message
+  [33mGENERATORS (make):[0m
+    [32mmake:controller [N][0m   [90mCreate a new controller. Use[0m [36m--api[0m [90mfor JSON[0m
+    [32mmake:model [N] [-m][0m   [90mCreate a model. Use[0m [36m-m[0m [90mto add a migration[0m
+    [32mmake:migration [N][0m    [90mCreate a new migration file in app/Migrations[0m
+    [32mmake:middleware [N][0m   [90mCreate a new middleware in app/Middleware[0m
+
+  [33mDATABASE (migrate):[0m
+    [32mmigrate[0m               [90mRun all pending migrations to Supabase[0m
+    [32mmigrate:status[0m        [90mCheck the status of all migrations[0m
+    [32mmigrate:rollback[0m      [90mRollback the last migration batch[0m
+    [32mmigrate:fresh[0m         [90mDrop all tables and re-run all migrations[0m
+
+  [33mUTILITIES:[0m
+    [32mdb[0m                    [90mCheck table structures and connection[0m
+    [32msql[0m                   [90mOpen interactive SQL runner[0m
+
+  [33mHELP:[0m
+    [36mhelp, --help[0m          [90mDisplay this help documentation[0m

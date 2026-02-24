@@ -1,6 +1,6 @@
 /**
  * Kuppa Engine - Server Core
- * Optimized by Ketut Dana
+ * Optimized by Ketut Dana - High Performance Version
  * Standardized for The minimalist javascript supabase framework
  */
 
@@ -11,34 +11,39 @@ const rootDir = path.join(__dirname, '../../');
 require('dotenv').config({ path: path.join(rootDir, '.env') });
 
 // 2. CORE MODULES
-const express = require('express');
-const hbs = require('hbs');
+const express      = require('express');
+const hbs          = require('hbs');
 const cookieParser = require('cookie-parser');
-const os = require('os');
-const net = require('net');
+const os           = require('os');
+const net          = require('net');
+const compression  = require('compression');
+const session      = require('express-session');
 
-// 3. INTERNAL ENGINE HELPERS (Using coreFile)
+// 3. INTERNAL ENGINE HELPERS
 const { registerHelpers } = coreFile('app.Helper');
-const Engine = coreFile('app.Engine');
-const GlobalMiddleware = coreFile('middleware.GlobalMiddleware');
-const ExceptionHandler = coreFile('middleware.ExceptionHandler');
+const Engine              = coreFile('app.Engine');
+const GlobalMiddleware    = coreFile('middleware.GlobalMiddleware');
+const ExceptionHandler    = coreFile('middleware.ExceptionHandler');
+const FlashMiddleware     = coreFile('middleware.FlashMiddleware');
 
 const app = express();
 
 /**
  * HIGH PERFORMANCE MIDDLEWARE
- * Loaded immediately after app initialization to handle compression
+ * Optimization: Handle compression and static assets BEFORE session parsing
  */
-app.use(require('compression')());
+app.use(compression());
+// Added cache control for static assets to improve load speed
+app.use(express.static(path.join(rootDir, 'public'), { maxAge: '1d' }));
 
 // --- INITIALIZE VIEW HELPERS ---
 registerHelpers();
 
 // --- LIVERELOAD SETUP (Development Only) ---
 if (process.env.APP_DEBUG === 'true') {
-    const livereload = require("livereload");
+    const livereload        = require("livereload");
     const connectLiveReload = require("connect-livereload");
-    const liveReloadServer = livereload.createServer();
+    const liveReloadServer  = livereload.createServer();
     liveReloadServer.watch(path.join(rootDir, 'views'));
     liveReloadServer.watch(path.join(rootDir, 'public'));
     app.use(connectLiveReload());
@@ -49,11 +54,15 @@ if (process.env.APP_DEBUG === 'true') {
 
 // --- VIEW ENGINE CONFIGURATION ---
 app.set('view engine', 'hbs');
-app.set('views', path.join(rootDir, 'views'));
+app.set('views', [
+    path.join(rootDir, 'views'),
+    path.join(rootDir, 'core/views')
+]);
 app.set('view options', { layout: 'layouts/app' });
+
+// Critical: View caching only for non-debug mode
 if (process.env.APP_DEBUG !== 'true') app.enable('view cache');
 
-// Registration of Partials and Components
 hbs.registerPartials(path.join(rootDir, 'views/partials'));
 hbs.registerPartials(path.join(rootDir, 'views/components')); 
 
@@ -61,17 +70,72 @@ hbs.registerPartials(path.join(rootDir, 'views/components'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+// ---- MAINTENACE MODE ----
+
+/**
+ * MAINTENANCE MODE MIDDLEWARE
+ * Blocks all routes and renders maintenance view if .maintenance file exists
+ */
+app.use((req, res, next) => {
+    const fs = require('fs');
+    const path = require('path');
+    const maintenancePath = path.join(process.cwd(), '.maintenance');
+
+    if (fs.existsSync(maintenancePath)) {
+        const isAsset = req.path.match(/\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2)$/);
+        if (isAsset) {
+            return next();
+        }
+
+        try {
+            const maintenanceInfo = JSON.parse(fs.readFileSync(maintenancePath, 'utf8'));
+            res.status(503);
+            return res.render('mode/maintenance', {
+                layout: false, 
+                message: maintenanceInfo.message,
+                downAt: maintenanceInfo.down_at
+            });
+        } catch (err) {
+            return res.status(503).send('<h1>Site Under Maintenance</h1>');
+        }
+    }
+    next();
+});
+
+/**
+ * SESSION MANAGEMENT
+ * Required for Flash Messages to persist between redirects
+ */
+app.use((req, res, next) => {
+    if (!process.env.APP_KEY) {
+        const error = new Error('Security Breach: APP_KEY is missing in your .env file. Please run "kuppa key:generate" to secure your application.');
+        error.status = 500;
+        return next(error);
+    }
+    next();
+});
+
+app.use(require('express-session')({
+    secret: process.env.APP_KEY,
+    resave: false,
+    saveUninitialized: true,
+    cookie: { 
+        secure: process.env.APP_STATUS === 'production', 
+        maxAge: 3600000 
+    }
+}));
+
 app.use(express.static(path.join(rootDir, 'public')));
 
 /**
- * ENGINE CORE INJECTION
- * Injecting fluent API (.with) and core response features
+ * ENGINE CORE & FLASH INJECTION
  */
 app.use(Engine);
+app.use(coreFile('middleware.FlashMiddleware'));
 
 /**
  * DATABASE & SYSTEM MIDDLEWARE
- * Ensuring database connection and global locals are ready
  */
 app.use(GlobalMiddleware);
 
@@ -93,10 +157,6 @@ app.use((req, res, next) => {
 app.use(ExceptionHandler); 
 
 // --- NETWORK UTILITIES ---
-/**
- * Get Local IPv4 Address
- * @returns {string}
- */
 const getLocalIp = () => {
     const interfaces = os.networkInterfaces();
     for (const devName in interfaces) {
@@ -109,11 +169,6 @@ const getLocalIp = () => {
     return '0.0.0.0';
 };
 
-/**
- * Port Availability Checker
- * @param {number} port 
- * @returns {Promise<boolean>}
- */
 const checkPort = (port) => {
     return new Promise((resolve) => {
         const server = net.createServer();
@@ -128,30 +183,15 @@ const checkPort = (port) => {
 
 /**
  * KUPPA SERVER INITIALIZER
- * Strict Port Management: Ensures predictable environments and prevents zombie processes.
  */
 const startServer = async () => {
     try {
-        const port = parseInt(process.env.PORT) || 3000;
+        const port = parseInt(process.env.APP_PORT) || 3000;
         const localIp = getLocalIp();
-
-        // Validate port availability
         const isAvailable = await checkPort(port);
 
         if (!isAvailable) {
-            console.clear();
-            console.log('\x1b[31m%s\x1b[0m', '  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-            console.log('\x1b[31m\x1b[1m  [PORT CONFLICT] Port ' + port + ' is already in use!\x1b[0m');
-            console.log('\x1b[31m%s\x1b[0m', '  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-            console.log(`\n  It looks like another process is already running on port \x1b[1m${port}\x1b[0m.`);
-            console.log('  This usually happens when a previous session was not closed properly.');
-            console.log('\n  \x1b[33m\x1b[1mQuick Solutions:\x1b[0m');
-            console.log(`  1. Press \x1b[36mCtrl+C\x1b[0m in the terminal running the other process.`);
-            console.log(`  2. Force kill the port: \x1b[36mnpx kill-port ${port}\x1b[0m`);
-            console.log(`  3. Manually find the PID: \x1b[36mlsof -i :${port}\x1b[0m then \x1b[36mkill -9 [PID]\x1b[0m`);
-            console.log('\x1b[31m%s\x1b[0m', '\n  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-            
-            // Terminate process to prevent unhandled state
+            console.log(`\n\x1b[31m[PORT CONFLICT] Port ${port} is in use.\x1b[0m`);
             process.exit(1);
         }
 
@@ -162,22 +202,17 @@ const startServer = async () => {
             console.log(`\x1b[36mLocal:\x1b[0m         http://localhost:${port}`);
             console.log(`\x1b[36mNetwork:\x1b[0m       http://${localIp}:${port}`);
             console.log(`----------------------------------------------`);
-            console.log(`Environment:   \x1b[35m${process.env.APP_ENV || 'development'}\x1b[0m`);
-            console.log(`Debug Mode:    \x1b[35m${process.env.APP_DEBUG || 'false'}\x1b[0m`);
-            console.log(`----------------------------------------------`);
-            console.log(`Hello Kuppa!`);
-            console.log(`\x1b[2mPress Ctrl+C to stop the server\x1b[0m\n`);
+            console.log(`Environment:   \x1b[35m${process.env.APP_STATUS || 'development'}\x1b[0m`);
+            console.log(`----------------------------------------------\n`);
         });
 
-        // Handle runtime server errors
         server.on('error', (err) => {
-            console.error(`\x1b[31m[Kuppa Runtime Error]:\x1b[0m ${err.message}`);
+            console.error(`\x1b[31m[Runtime Error]:\x1b[0m ${err.message}`);
             process.exit(1);
         });
 
     } catch (error) {
-        console.error(`\x1b[31m[Kuppa Boot Error]:\x1b[0m Failed to initialize server.`);
-        console.error(error.stack);
+        console.error(`\x1b[31m[Boot Error]:\x1b[0m ${error.stack}`);
         process.exit(1);
     }
 };

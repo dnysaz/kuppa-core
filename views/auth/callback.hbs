@@ -1,0 +1,24 @@
+<script>
+    // Ambil URL hash dari Supabase
+    const hash = window.location.hash;
+    if (hash) {
+        // Ekstrak access_token
+        const params = new URLSearchParams(hash.replace('#', '?'));
+        const accessToken = params.get('access_token');
+
+        if (accessToken) {
+            // Simpan ke cookie agar sinkron dengan AuthController manual
+            document.cookie = `Kuppa_session=${accessToken}; path=/; max-age=3600; samesite=lax`;
+            
+            // Redirect ke dashboard
+            window.location.href = '/dashboard';
+        } else {
+            window.location.href = '/login?error=Session fail';
+        }
+    } else {
+        window.location.href = '/dashboard';
+    }
+</script>
+<p style="text-align: center; font-family: sans-serif; margin-top: 50px;">
+    Authenticating with Google, please wait...
+</p>

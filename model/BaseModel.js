@@ -42,7 +42,7 @@ class BaseModel {
         return this.queryInstance;
     }
 
-    /**
+/**
      * Clear all cache related to this table (Invalidation)
      * @private
      */
@@ -191,14 +191,16 @@ class BaseModel {
     }
 
     async update(id, payload) {
-        this._resetBuilder();
-        const cleanPayload = this._filterFillable(payload);
+        if (!payload) throw new Error('Update payload is missing');
 
+        const cleanPayload = this._filterFillable(payload);
         const { data, error } = await supabase
             .from(this.table)
             .update(cleanPayload)
             .eq('id', id)
             .select(); 
+        
+        this._resetBuilder();
         
         if (error) throw error;
 

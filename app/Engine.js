@@ -1,76 +1,94 @@
 const path = require('path');
 
 /**
- * Kuppa Engine - Optimized Response & Performance
- * Location: app/Engine.js
- * Author: Ketut Dana
+ * Kuppa Engine - High Performance Render Engine
+ * Optimized by Ketut Dana - Strictly Minimalist
+ * Update: Added Explicit Core View Support
  */
-module.exports = (req, res, next) => {
-    // High-resolution real time for precise benchmarking
-    const start = global.process.hrtime();
-    
-    // Cache Static Locals once per request to avoid multiple process.env access
-    const locals = res.locals;
-    locals.supabaseActive = !!(global.process.env.SUPABASE_URL && global.process.env.SUPABASE_KEY);
-    locals.useSupabase = global.process.env.USE_SUPABASE !== 'false';
-    locals.appName = global.process.env.APP_NAME || 'kuppa.js';
-    locals.appVersion = global.process.env.APP_VERSION || '0.5.0';
 
+// 1. MEMOIZATION: Read env once on server boot, not every request
+const BOOT_CONFIG = {
+    supabaseActive: !!(process.env.SUPABASE_URL && process.env.SUPABASE_KEY),
+    useSupabase: process.env.USE_SUPABASE !== 'false',
+    appName: process.env.APP_NAME || 'kuppa.js',
+    appVersion: process.env.APP_VERSION || '0.5.0'
+};
+
+module.exports = (req, res, next) => {
+    // High-resolution start time
+    const hrStart = process.hrtime();
+    
     const originalRender = res.render;
 
+    /**
+     * Optimized Render Override
+     */
     res.render = function (view, options = {}, callback) {
-        let viewPath = view;
+        // State management for fluent chain
+        const state = {
+            viewPath: view || '',
+            isCore: false
+        };
 
-        // 1. Path Correction Logic
-        // Only process string paths that are not absolute (prevents breaking system paths)
-        if (typeof view === 'string' && !path.isAbsolute(view)) {
-            if (view.indexOf('.') !== -1) {
-                viewPath = view.split('.').join('/');
-            } else if (view === 'login') {
-                viewPath = 'auth/login';
-            } else if (view === 'register') {
-                viewPath = 'auth/register';
-            }
-        }
+        // Helper for path resolution (dot to slash)
+        const resolvePath = (v) => {
+            if (typeof v !== 'string' || path.isAbsolute(v)) return v;
+            
+            let p = v.includes('.') ? v.replace(/\./g, '/') : v;
+            if (p === 'login' || p === 'register') p = `auth/${p}`;
+            return p;
+        };
 
-        // 2. Internal Render Execution
+        // Initial path resolution
+        state.viewPath = resolvePath(view);
+
+        /**
+         * Core Render Processor
+         */
         const performRender = (data, cb) => {
-            // Layout path correction
-            if (data.layout && typeof data.layout === 'string' && data.layout.indexOf('.') !== -1) {
-                data.layout = data.layout.split('.').join('/');
+            // Layout path fix
+            if (data && data.layout && typeof data.layout === 'string' && data.layout.includes('.')) {
+                data.layout = data.layout.replace(/\./g, '/');
             }
 
-            // Calculate exact render time
-            const diff = global.process.hrtime(start);
-            data.renderTime = (diff[0] + diff[1] / 1e9).toFixed(3);
+            // Precise Benchmarking
+            const hrDiff = process.hrtime(hrStart);
+            data.renderTime = (hrDiff[0] + hrDiff[1] / 1e9).toFixed(3);
 
-            return originalRender.call(res, viewPath, data, cb);
+            // 3. EFFICIENT MERGE: Using spread operator
+            const finalData = { ...BOOT_CONFIG, ...res.locals, ...data };
+
+            // Determine final path based on core flag
+            let finalPath = state.viewPath;
+            if (state.isCore && typeof finalPath === 'string' && !path.isAbsolute(finalPath)) {
+                finalPath = `../core/views/${finalPath}`;
+            }
+
+            return originalRender.call(res, finalPath, finalData, cb);
         };
 
-        // 3. Fluent Interface (Chainable API)
+        // 4. MODERN FLUENT API: Supporting .core() and .with()
         const chain = {
-            with: (dataOrKey, value = null) => {
-                const renderData = Object.assign({}, locals);
-                if (typeof dataOrKey === 'object') {
-                    Object.assign(renderData, dataOrKey);
-                } else {
-                    renderData[dataOrKey] = value;
-                }
-                return performRender(renderData, callback);
+            // Force lookup into core/views folder
+            core: function(coreView = null) {
+                state.isCore = true;
+                if (coreView) state.viewPath = resolvePath(coreView);
+                return this;
+            },
+
+            with: function(dataOrKey, value = null) {
+                const payload = (typeof dataOrKey === 'object') 
+                    ? dataOrKey 
+                    : { [dataOrKey]: value };
+                return performRender(payload, callback);
             }
         };
 
-        // 4. Legacy/Standard Call Handling
-        const hasOptions = options && Object.keys(options).length > 0;
-        const isLegacy = hasOptions || typeof options === 'function' || typeof callback === 'function';
-
-        if (isLegacy) {
-            const renderData = Object.assign({}, locals);
+        // 5. COMPACT LEGACY SUPPORT
+        const hasOptions = options && typeof options === 'object' && Object.keys(options).length > 0;
+        if (hasOptions || typeof options === 'function' || typeof callback === 'function') {
             const finalCb = typeof options === 'function' ? options : callback;
-            if (hasOptions && typeof options === 'object') {
-                Object.assign(renderData, options);
-            }
-            return performRender(renderData, finalCb);
+            return performRender(hasOptions ? options : {}, finalCb);
         }
 
         return chain;
