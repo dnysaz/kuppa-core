@@ -232,8 +232,8 @@ else if (command && command.startsWith('make:')) {
             break;
 
         default:
-            console.log('\x1b[31mError:\x1b[0m Unknown command. Type \x1b[1mkuppa help\x1b[0m.');
+            console.log('\x1b[31mError:\x1b[0m Unknown command. Type \x1b[1mnode kuppa help\x1b[0m.');
     }
 } else {
-    console.log('\x1b[31mError:\x1b[0m Unknown command. Type \x1b[1mkuppa help\x1b[0m.');
+    console.log('\x1b[31mError:\x1b[0m Unknown command. Type \x1b[1mnode kuppa help\x1b[0m.');
 }
