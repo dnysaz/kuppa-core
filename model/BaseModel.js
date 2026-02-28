@@ -13,6 +13,7 @@
 
 const crypto = require('crypto')
 const { supabase } = require('../config/Database')
+const Logger = coreFile('utils.Logger');
 
 /* ============================================================
    CACHE ADAPTER SYSTEM
@@ -220,10 +221,14 @@ class QueryBuilder {
         if (useCache) {
             const cached = await this.model.cache.get(key);
             if (cached) {
-                if (process.env.APP_DEBUG === 'true') console.log(`\x1b[32m[KUPPA CACHE] HIT: ${key}\x1b[0m`);
+                if (process.env.APP_DEBUG === 'true') {
+                    Logger.info(`[KUPPA CACHE] HIT: ${key}`);
+                }
                 return cached;
             }
-            if (process.env.APP_DEBUG === 'true') console.log(`\x1b[33m[KUPPA CACHE] MISS: ${key}\x1b[0m`);
+            if (process.env.APP_DEBUG === 'true') {
+                Logger.info(`[KUPPA CACHE] MISS: ${key}`);
+            }
         }
 
         let query = baseQuery.select(this.state.select)
@@ -292,7 +297,9 @@ class QueryBuilder {
         const cached = await this.model.cache.get(cacheKey);
         
         if (cached) {
-            if (process.env.APP_DEBUG === 'true') console.log(`[KUPPA CACHE] HIT PAGINATE: ${cacheKey}`);
+            if (process.env.APP_DEBUG === 'true') {
+                Logger.info(`[KUPPA CACHE] HIT PAGINATE: ${cacheKey}`);
+            }
             return cached;
         }
 

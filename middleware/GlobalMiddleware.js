@@ -1,4 +1,7 @@
+'use strict'
+
 const { supabase } = require('../../core/config/Database');
+const Logger = coreFile('utils.Logger');
 
 // 1. Native Memory Storage (Zero Dependency)
 if (!global.kuppaMemory) {
@@ -77,7 +80,8 @@ module.exports = async (req, res, next) => {
     if (res.locals.globalUser === undefined) res.locals.globalUser = null;
     if (res.locals.userRole === undefined) res.locals.userRole = null; // Initialize userRole
 
-    if (!token || typeof token !== 'string' || token.split('.').length !== 3) {
+    // CIRCUIT BREAKER: Jika supabase null (saat testing), langsung skip ke next()
+    if (!supabase || !token || typeof token !== 'string' || token.split('.').length !== 3) {
         return next();
     }
 
@@ -149,9 +153,7 @@ module.exports = async (req, res, next) => {
         }
 
     } catch (err) {
-        if (process.env.APP_DEBUG === 'true') {
-            console.error('[GlobalMiddleware Error]:', err.message);
-        }
+        Logger.error(`[GlobalMiddleware Exception]: ${err.message}`);
     }
 
     if (res.locals.user) {
