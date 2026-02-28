@@ -1,50 +1,68 @@
 /**
  * {{name}} - Kuppa Framework
- * Standardized for The minimalist javascript supabase framework
- * Refactored with process.view() by Ketut Dana
+ * Clean, Instance-based Controller
+ * Optimized by Ketut Dana
  */
 
 // Core & Application Dependencies
-const BaseController = coreFile('controller.BaseController');
-// const Model       = appFile('Models.yourModel'); 
+const BaseController    = coreFile('controller.BaseController');
+// const Model          = appFile('Models.YourModel'); 
+// const { supabase }   = coreFile('config.Database');
+// const Session        = coreFile('auth.Session');
+// const Validation     = coreFile('utils.Validation');
 
 class {{name}} extends BaseController {
 
     /**
      * [GET] Index Page
      */
-    static async index(process) {
-        try {
-            // Context & Metadata
-            const title       = 'List of {{name}}';
-            const description = 'This is description for {{name}}';
-            const view        = '{{name_lower}}.index';
+    async index(process) {
+        const title       = 'List of {{name}}';
+        const description = 'Manage your {{name_lower}} here.';
+        const view        = '{{name_lower}}.index';
 
-            // Using the new Fluent View Interface
-            return process.view(view).with({ 
-                title,
-                description
-            });
-        } catch (err) {
-            process.next(err);
-        }
+        return process.view(view).with({ 
+            title,
+            description
+        });
     }
 
     /**
      * [GET] Create Page
      */
-    static async create(process) {
-        try {
-            const title = 'Create New {{name}}';
-            const view  = '{{name_lower}}.create';
+    async create(process) {
+        const title = 'Create New {{name}}';
+        const view  = '{{name_lower}}.create';
 
-            return process.view(view).with({ title });
-        } catch (err) {
-            process.next(err);
-        }
+        return process.view(view).with({ 
+            title 
+        });
     }
 
-    // Add more logic for store, edit, update, destroy...
+    /**
+     * [POST] Store Action
+     */
+    async store(process) {
+        // Example: logic to save data
+        // await Model.create(process.body);
+
+        process.res.flash('success', 'Data created successfully!');
+        return process.res.redirect('back');
+    }
+
+    /**
+     * [GET] Edit Page
+     */
+    async edit(process) {
+        const { id } = process.req.params;
+        const title  = 'Edit {{name}}';
+        
+        return process.view('{{name_lower}}.edit').with({ 
+            title,
+            id 
+        });
+    }
 }
 
-module.exports = {{name}};
+// Export as Instance for Route Config
+module.exports = new {{name}}();

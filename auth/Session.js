@@ -1,13 +1,12 @@
 /**
  * Kuppa Engine - Session Manager
- * Optimized by Ketut Dana
+ * Optimized by Ketut Dana - Fixed Flash Persistence
  */
 class Session {
     /**
      * Get Session Lifetime from ENV or default to 1 Hour
      */
     static get lifetime() {
-        // Use 1 hour as default if SESSION_LIFETIME is not set in .env
         const hours = global.process.env.SESSION_LIFETIME || 1;
         return parseInt(hours) * 60 * 60 * 1000;
     }
@@ -18,14 +17,23 @@ class Session {
      * @param {string} token - Access token
      */
     static create(res, token) {
-        const isProduction = global.process.env.APP_DEBUG === 'false';
+        const isProduction = global.process.env.APP_STATUS === 'production';
 
-        return res.cookie('Kuppa_session', token, {
+        // 1. Set Auth Cookie (Untuk Supabase)
+        res.cookie('Kuppa_session', token, {
             httpOnly: true,
             secure: isProduction,
             sameSite: 'lax',
             maxAge: this.lifetime
         });
+
+        // 2. Pastikan express-session juga tersimpan
+        // Tanpa ini, ID session bisa berubah dan flash message hilang
+        if (res.req && res.req.session) {
+            res.req.session.save();
+        }
+        
+        return res;
     }
 
     /**
@@ -33,7 +41,11 @@ class Session {
      * @param {Object} res - Express Response object
      */
     static destroy(res) {
-        return res.clearCookie('Kuppa_session');
+        res.clearCookie('Kuppa_session');
+        if (res.req && res.req.session) {
+            res.req.session.destroy();
+        }
+        return res;
     }
 }
 

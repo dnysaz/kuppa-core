@@ -1,11 +1,12 @@
 /**
  * kuppa Engine - Route Wrapper
  * Optimized for Grouping, Chaining, and Precise Error Messaging.
- * Handles undefined controller methods gracefully without crashing the app.
+ * Update: Full Automatic Async Error Handling for Controllers.
  */
 const catchAsync = require('./CatchAsync');
 
 global.kuppaRoutes = global.kuppaRoutes || {};
+const controllerInstances = new Map();
 
 const wrap = (router) => {
     const methods = ['get', 'post', 'put', 'delete', 'patch'];
@@ -15,21 +16,57 @@ const wrap = (router) => {
         
         router[method] = (path, ...callbacks) => {
             const wrappedCallbacks = callbacks.map((callback) => {
-                // Check if the callback is undefined (common when a method is commented out)
-                if (typeof callback === 'undefined') {
+                
+                // 1. Handle Array Syntax: [HomeController, 'index']
+                if (Array.isArray(callback) && callback.length === 2) {
+                    const [ControllerClass, methodName] = callback;
+
                     return catchAsync(async (process) => {
-                        // Throw a professional error that will be caught by KuppaJs Debugger
-                        const error = new Error(`The requested method for route [${path}] is undefined. Please check if the function exists and is exported in your Controller.`);
-                        error.status = 501; // Not Implemented
+                        // Check if ControllerClass is valid
+                        if (!ControllerClass) {
+                            throw new Error(`Controller for route [${path}] is undefined. Check your require or config.`);
+                        }
+
+                        let instance = controllerInstances.get(ControllerClass);
+                        
+                        // Singleton instantiation for instance methods
+                        if (!instance) {
+                            if (typeof ControllerClass === 'function' && ControllerClass.prototype) {
+                                instance = new ControllerClass();
+                                controllerInstances.set(ControllerClass, instance);
+                            } else {
+                                // Fallback for static objects/exports
+                                instance = ControllerClass;
+                            }
+                        }
+
+                        // Check if method exists on instance
+                        if (typeof instance[methodName] !== 'function') {
+                            const error = new Error(`Method [${methodName}] not found in [${ControllerClass.name || 'Controller'}].`);
+                            error.status = 501;
+                            throw error;
+                        }
+
+                        // Execute and let catchAsync handle any internal errors
+                        return await instance[methodName](process);
+                    });
+                }
+
+                // 2. Handle Undefined Callbacks (Commonly caused by removing 'static' without using array syntax)
+                if (typeof callback === 'undefined' || callback === null) {
+                    return catchAsync(async (process) => {
+                        const error = new Error(`Route [${path}] callback is undefined. If you removed 'static', use array syntax [Controller, 'method'].`);
+                        error.status = 501;
                         throw error;
                     });
                 }
 
-                // If it's a valid function, wrap it with catchAsync for global error handling
+                // 3. Handle Regular Functions (Middleware or Anonymous Controllers)
+                // We wrap them with catchAsync to ensure global error catching
                 return typeof callback === 'function' ? catchAsync(callback) : callback;
             });
 
-            // Register the route to Express/Router
+            // Apply the wrapped callbacks to the original Express method
             originalMethod(path, ...wrappedCallbacks);
             
             // Return object for .name() chaining
@@ -44,31 +81,22 @@ const wrap = (router) => {
 
     /**
      * Standardized Group Function
-     * Supports: 
-     * 1. route.group([mw], (route) => {})
-     * 2. route.group({ prefix: '/v1', middleware: [] }, (route) => {})
      */
     router.group = function(attributes, callback) {
         const express = require('express');
         const groupRouter = wrap(express.Router({ mergeParams: true }));
-        
         let middlewares = [];
         let prefix = '/';
 
-        // Logic for handling different argument types
         if (Array.isArray(attributes)) {
-            // Case: [middleware]
             middlewares = attributes;
         } else if (typeof attributes === 'object' && attributes !== null) {
-            // Case: { prefix: '/v1', middleware: [] }
             prefix = attributes.prefix || '/';
             middlewares = attributes.middleware || [];
         }
 
-        // Execute the callback to register inner routes
         callback(groupRouter);
 
-        // Mount the group router to the parent
         if (middlewares.length > 0) {
             this.use(prefix, middlewares, groupRouter);
         } else {
@@ -79,6 +107,24 @@ const wrap = (router) => {
     };
 
     return router;
+};
+
+/**
+ * Global Route Resolver
+ * Converts 'blog.show' + {slug: 'test'} into '/blog/show/test'
+ */
+global.route = (name, params = {}) => {
+    let path = global.kuppaRoutes[name];
+
+    if (!path) {
+        return name; 
+    }
+
+    Object.keys(params).forEach(key => {
+        path = path.replace(`:${key}`, params[key]);
+    });
+
+    return path;
 };
 
 module.exports = wrap;

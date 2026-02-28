@@ -128,6 +128,33 @@ else if (command === 'clear:cache') {
 }
 
 /**
+ * Log Management Command
+ * Clears all .log files in storage/logs
+ */
+else if (command === 'clear:log') {
+    const logDir = path.join(process.cwd(), 'storage/logs');
+
+    if (!fs.existsSync(logDir)) {
+        console.log('\x1b[33mNote:\x1b[0m Log directory does not exist. Nothing to clear.');
+        process.exit(0);
+    }
+
+    const files = fs.readdirSync(logDir);
+    let deletedCount = 0;
+
+    files.forEach(file => {
+        if (path.extname(file) === '.log') {
+            fs.unlinkSync(path.join(logDir, file));
+            deletedCount++;
+        }
+    });
+
+    console.log(`\n\x1b[32m✔ Logs cleared successfully.\x1b[0m`);
+    console.log(`\x1b[90mDeleted ${deletedCount} log file(s) from storage/logs.\x1b[0m\n`);
+    process.exit(0);
+}
+
+/**
  * Maintenance Mode Commands (Up & Down)
  */
 else if (command === 'down') {

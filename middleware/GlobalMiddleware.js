@@ -1,24 +1,81 @@
 const { supabase } = require('../../core/config/Database');
 
-// Native Memory Storage (Zero Dependency)
+// 1. Native Memory Storage (Zero Dependency)
 if (!global.kuppaMemory) {
     global.kuppaMemory = new Map();
 }
 
+// 2. Performance Shield Storage
+if (!global.kuppaShield) {
+    global.kuppaShield = new Map();
+}
+
 /**
- * GlobalMiddleware - Optimized for High RPS & Instant Invalidation
- * No Node-Cache needed, using Native Map.
+ * SHIELD GARBAGE COLLECTOR
+ * Runs every 30 minutes to keep RAM lean.
+ * Optimized by Ketut Dana for High-Performance.
+ */
+setInterval(() => {
+    const now = Date.now();
+    const expiry = 60 * 1000; // 1 minute
+    let cleaned = 0;
+
+    for (const [ip, data] of global.kuppaShield.entries()) {
+        if (now - data.startTime > expiry) {
+            global.kuppaShield.delete(ip);
+            cleaned++;
+        }
+    }
+    
+    if (process.env.APP_DEBUG === 'true' && cleaned > 0) {
+        console.log(`[Kuppa Shield]: Cleaned ${cleaned} expired IP entries.`);
+    }
+}, 30 * 60 * 1000);
+
+/**
+ * GlobalMiddleware - The Ultimate Version
+ * Features: Performance Shield (Toggleable), Auth Cache, Auto Invalidation
+ * Fixed: Flash Message Persistence & userRole Global Sync by Ketut Dana
  */
 module.exports = async (req, res, next) => {
+    // --- STEP 1: PERFORMANCE SHIELD (IP Rate Limiting) ---
+    if (process.env.KUPPA_SHIELD === 'true') {
+        const clientIp = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress;
+        const now = Date.now();
+        const windowMs = 60 * 1000; 
+        const maxRequests = parseInt(process.env.KUPPA_SHIELD_MAX) || 1000;
+
+        let ipData = global.kuppaShield.get(clientIp);
+
+        if (!ipData || (now - ipData.startTime) > windowMs) {
+            ipData = { count: 1, startTime: now };
+        } else {
+            ipData.count++;
+        }
+
+        global.kuppaShield.set(clientIp, ipData);
+
+        if (ipData.count > maxRequests) {
+            res.setHeader('Retry-After', 60);
+            res.status(429);
+            return res.render('shield/kuppa-shield', { 
+                layout: false, 
+                ip: clientIp,
+                limit: maxRequests
+            });
+        }
+    }
+
+    // --- STEP 2: INITIALIZE LOCALS & AUTH ---
     const token = req.cookies.Kuppa_session;
     const urlPath = req.path;
 
-    // 1. Reset Locals
     res.locals.currentRoute = urlPath === '/' ? 'home' : urlPath.split('/')[1];
-    res.locals.user = null;
-    res.locals.globalUser = null;
-    req.user = null;
-    req.authUser = null;
+    
+    // FIX: Only initialize if not already set to prevent overwriting flash data
+    if (res.locals.user === undefined) res.locals.user = null;
+    if (res.locals.globalUser === undefined) res.locals.globalUser = null;
+    if (res.locals.userRole === undefined) res.locals.userRole = null; // Initialize userRole
 
     if (!token || typeof token !== 'string' || token.split('.').length !== 3) {
         return next();
@@ -29,41 +86,35 @@ module.exports = async (req, res, next) => {
         const payload = JSON.parse(payloadStr);
         const userId = payload.sub;
 
-        // --- INSTANT AUTOMATIC INVALIDATION ---
-        // Jika user melakukan POST/PUT/PATCH (update data), kita langsung buang cache-nya
+        // --- STEP 3: AUTOMATIC CACHE INVALIDATION ---
         if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) {
             global.kuppaMemory.delete(userId); 
-            // Kita juga intercept saat response selesai untuk memastikan cache bersih
-            const originalEnd = res.end;
-            res.end = function (chunk, encoding) {
-                global.kuppaMemory.delete(userId);
-                originalEnd.call(this, chunk, encoding);
-            };
         }
 
-        // --- CACHE LOOKUP ---
+        // --- STEP 4: CACHE LOOKUP ---
         const cachedData = global.kuppaMemory.get(userId);
         if (cachedData) {
             req.user = cachedData.dbUser;
             req.authUser = cachedData.authUser;
             res.locals.user = cachedData.dbUser;
             res.locals.globalUser = cachedData.globalUser;
+            res.locals.userRole = cachedData.userRole; // Get role from cache
             return next();
         }
 
-        // --- FETCH DATA (Jika cache kosong/dihapus) ---
+        // --- STEP 5: FETCH DATA (Parallel Execution) ---
         const [authRes, dbRes] = await Promise.all([
             supabase.auth.getUser(token),
             supabase
                 .from('profiles')
-                .select('id, full_name, email, avatar_url')
+                .select('id, full_name, email, avatar_url, role')
                 .eq('id', userId)
                 .single()
         ]);
 
         const { data: authData, error: authError } = authRes;
         const { data: dbUser, error: dbError } = dbRes;
-        const authUser = authData ? authData.user : null;
+        const authUser = authData?.user;
 
         if (!authError && authUser && dbUser) {
             let avatarUrl = dbUser.avatar_url;
@@ -74,30 +125,37 @@ module.exports = async (req, res, next) => {
             const globalUserData = { 
                 name: dbUser.full_name || 'User', 
                 email: dbUser.email,
-                avatar: avatarUrl || '/assets/img/default-avatar.png'
+                avatar: avatarUrl || '/assets/img/default-avatar.png',
+                role: dbUser.role // Ensure role is in globalUserData
             };
 
-            // Sync ke request
+            // SET KE REQUEST & LOCALS
             req.user = dbUser;
             req.authUser = authUser;
             res.locals.user = dbUser;
             res.locals.globalUser = globalUserData;
+            res.locals.userRole = dbUser.role; // Crucial for navbar persistence
 
-            // Simpan ke memory untuk request GET berikutnya
             global.kuppaMemory.set(userId, {
                 dbUser,
                 authUser,
-                globalUser: globalUserData
+                globalUser: globalUserData,
+                userRole: dbUser.role 
             });
 
         } else if (authError) {
             res.clearCookie('Kuppa_session', { path: '/' });
             global.kuppaMemory.delete(userId);
         }
+
     } catch (err) {
-        if (global.process.env.APP_DEBUG === 'true') {
+        if (process.env.APP_DEBUG === 'true') {
             console.error('[GlobalMiddleware Error]:', err.message);
         }
+    }
+
+    if (res.locals.user) {
+        req.session.user_id = res.locals.user.id;
     }
     
     return next();

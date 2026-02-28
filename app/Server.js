@@ -22,9 +22,10 @@ const session      = require('express-session');
 // 3. INTERNAL ENGINE HELPERS
 const { registerHelpers } = coreFile('app.Helper');
 const Engine              = coreFile('app.Engine');
-const GlobalMiddleware    = coreFile('middleware.GlobalMiddleware');
-const ExceptionHandler    = coreFile('middleware.ExceptionHandler');
 const FlashMiddleware     = coreFile('middleware.FlashMiddleware');
+const GlobalMiddleware    = coreFile('middleware.GlobalMiddleware');
+const Logger              = coreFile('utils.Logger');
+const LogMiddleware       = coreFile('middleware.LogMiddleware');
 
 const app = express();
 
@@ -33,7 +34,6 @@ const app = express();
  * Optimization: Handle compression and static assets BEFORE session parsing
  */
 app.use(compression());
-// Added cache control for static assets to improve load speed
 app.use(express.static(path.join(rootDir, 'public'), { maxAge: '1d' }));
 
 // --- INITIALIZE VIEW HELPERS ---
@@ -60,7 +60,6 @@ app.set('views', [
 ]);
 app.set('view options', { layout: 'layouts/app' });
 
-// Critical: View caching only for non-debug mode
 if (process.env.APP_DEBUG !== 'true') app.enable('view cache');
 
 hbs.registerPartials(path.join(rootDir, 'views/partials'));
@@ -71,22 +70,36 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// ---- MAINTENACE MODE ----
-
 /**
- * MAINTENANCE MODE MIDDLEWARE
- * Blocks all routes and renders maintenance view if .maintenance file exists
+ * SESSION MANAGEMENT
  */
 app.use((req, res, next) => {
+    if (!process.env.APP_KEY) {
+        const error = new Error('Security Breach: APP_KEY is missing. Run "node kuppa key:generate".');
+        error.status = 500;
+        return next(error);
+    }
+    next();
+});
+
+app.use(session({
+    secret: process.env.APP_KEY,
+    resave: false,
+    saveUninitialized: false,
+    cookie: { 
+        secure: process.env.APP_STATUS === 'production', 
+        maxAge: 3600000 
+    }
+}));
+
+// ---- MAINTENANCE MODE ----
+app.use((req, res, next) => {
     const fs = require('fs');
-    const path = require('path');
     const maintenancePath = path.join(process.cwd(), '.maintenance');
 
     if (fs.existsSync(maintenancePath)) {
         const isAsset = req.path.match(/\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2)$/);
-        if (isAsset) {
-            return next();
-        }
+        if (isAsset) return next();
 
         try {
             const maintenanceInfo = JSON.parse(fs.readFileSync(maintenancePath, 'utf8'));
@@ -104,44 +117,25 @@ app.use((req, res, next) => {
 });
 
 /**
- * SESSION MANAGEMENT
- * Required for Flash Messages to persist between redirects
- */
-app.use((req, res, next) => {
-    if (!process.env.APP_KEY) {
-        const error = new Error('Security Breach: APP_KEY is missing in your .env file. Please run "kuppa key:generate" to secure your application.');
-        error.status = 500;
-        return next(error);
-    }
-    next();
-});
-
-app.use(require('express-session')({
-    secret: process.env.APP_KEY,
-    resave: false,
-    saveUninitialized: true,
-    cookie: { 
-        secure: process.env.APP_STATUS === 'production', 
-        maxAge: 3600000 
-    }
-}));
-
-app.use(express.static(path.join(rootDir, 'public')));
-
-/**
  * ENGINE CORE & FLASH INJECTION
  */
 app.use(Engine);
-app.use(coreFile('middleware.FlashMiddleware'));
-
-/**
- * DATABASE & SYSTEM MIDDLEWARE
- */
+app.use(FlashMiddleware);
 app.use(GlobalMiddleware);
+app.use(LogMiddleware);
 
 // --- ROUTE REGISTRATION ---
 app.use('/api', require(path.join(rootDir, 'routes/api')));
 app.use('/', require(path.join(rootDir, 'routes/web')));
+
+/**
+ * Global Abort Helper
+ */
+global.abort = (code, message = 'An error occurred') => {
+    const error = new Error(message);
+    error.status = code;
+    throw error; 
+};
 
 // --- 404 HANDLER ---
 app.use((req, res, next) => {
@@ -153,8 +147,29 @@ app.use((req, res, next) => {
     next(err); 
 });
 
-// --- GLOBAL EXCEPTION HANDLER ---
-app.use(ExceptionHandler); 
+// --- GLOBAL ERROR HANDLER (The Final Catcher) ---
+app.use((err, req, res, next) => {
+    // Auto log the crash with full stack trace
+    Logger.error(`[${err.status || 500}] ${req.method} ${req.url} - ${err.message}\nStack: ${err.stack}`);
+
+    const statusCode = err.status || 500;
+
+    if (process.env.APP_DEBUG === 'true') {
+        return res.status(statusCode).send(`
+            <div style="padding: 20px; font-family: sans-serif; line-height: 1.5;">
+                <h1 style="color: #d9534f;">Kuppa Exception [${statusCode}]</h1>
+                <p><strong>Message:</strong> ${err.message}</p>
+                <pre style="background: #f8f9fa; padding: 15px; border: 1px solid #ddd; overflow-x: auto;">${err.stack}</pre>
+            </div>
+        `);
+    }
+
+    if (statusCode === 404) {
+        return res.status(404).render('errors/404', { layout: false });
+    }
+
+    res.status(500).render('errors/500', { layout: false });
+});
 
 // --- NETWORK UTILITIES ---
 const getLocalIp = () => {
