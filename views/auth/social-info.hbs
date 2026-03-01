@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setup Required | Kuppa.js</title>
+    <style>
+        :root { --bg: #ffffff; --fg: #000000; --gray: #666666; --line: #eaeaea; }
+        @media (prefers-color-scheme: dark) { :root { --bg: #000000; --fg: #ffffff; --gray: #888888; --line: #333333; } }
+        body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .container { max-width: 480px; padding: 40px; text-align: left; }
+        h1 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 24px; border-bottom: 1px solid var(--fg); padding-bottom: 8px; display: inline-block; }
+        p { font-size: 13px; line-height: 1.6; color: var(--gray); margin-bottom: 20px; }
+        code { font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace; background: var(--line); padding: 2px 6px; border-radius: 4px; color: var(--fg); font-size: 12px; }
+        ol { font-size: 13px; color: var(--gray); margin: 0 0 24px 20px; padding: 0; line-height: 1.8; }
+        .code-box { background: var(--line); padding: 16px; border-radius: 4px; font-family: monospace; font-size: 12px; margin-bottom: 24px; overflow-x: auto; }
+        .footer { margin-top: 40px; font-size: 11px; letter-spacing: 0.1em; color: var(--gray); text-transform: uppercase; }
+        a { color: var(--fg); text-decoration: none; font-size: 12px; font-weight: 500; border-bottom: 1px solid var(--line); }
+        a:hover { border-bottom-color: var(--fg); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Setup Required</h1>
+        <p>{{message}} To enable Google OAuth, follow these steps:</p>
+        
+        <ol>
+            <li>Go to <b>Supabase Dashboard</b> &gt; <b>Authentication</b> &gt; <b>Providers</b>.</li>
+            <li>Enable <b>Google</b> and paste your <b>Client ID</b> and <b>Secret</b>.</li>
+            <li>Ensure the callback URL from Supabase is added to your Google Cloud Console.</li>
+            <li>Add this to your <code>.env</code> file:</li>
+        </ol>
+
+        <div class="code-box">
+            {{envHint}}
+        </div>
+
+        <a href="/">&larr; Back to Home</a>
+    </div>
+
+    <div class="footer">
+        Powered by <span class="brand">kuppa.js</span>
+    </div>
+</body>
+</html>
