@@ -3,6 +3,15 @@ const Database = coreFile('config.Database');
 module.exports = async (tableName = null) => {
     const supabase = Database.supabase || Database;
 
+    if (!supabase || typeof supabase.rpc !== 'function') {
+        console.log('\n\x1b[31m[CONFIG ERROR]\x1b[0m Supabase client not initialized.');
+        console.log('\x1b[33mPlease ensure the following variables are set in your .env file:\x1b[0m\n');
+        console.log('SUPABASE_URL = "your-project-url"');
+        console.log('SUPABASE_KEY = "your-anon-key"\n');
+        console.log('\x1b[90mRun "node kuppa db" again after configuring your .env.\x1b[0m\n');
+        process.exit(1);
+    }
+
     const showSetupInstructions = () => {
         console.log('\n\x1b[31m[ERROR]\x1b[0m Database engine [kuppa_execute] not found.');
         console.log('\x1b[36mPlease run this SQL in your Supabase SQL Editor:\x1b[0m\n');
