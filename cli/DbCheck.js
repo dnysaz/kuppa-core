@@ -16,15 +16,30 @@ module.exports = async (tableName = null) => {
         console.log('\x1b[36mPlease run this SQL in your Supabase SQL Editor to enable CLI Database Inspector:\x1b[0m\n');
         console.log('\x1b[90m------------------------------------------------------------------\x1b[0m');
         console.log(`
-CREATE OR REPLACE FUNCTION kuppa_execute_sql(sql_query text)
-RETURNS SETOF json AS $$
+DROP FUNCTION IF EXISTS public.kuppa_execute_sql(text);
+
+CREATE OR REPLACE FUNCTION public.kuppa_execute_sql(sql_query text)
+RETURNS void AS $$
 BEGIN
-    RETURN QUERY EXECUTE sql_query;
+    EXECUTE sql_query;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
-GRANT EXECUTE ON FUNCTION kuppa_execute_sql(text) TO service_role;
-GRANT EXECUTE ON FUNCTION kuppa_execute_sql(text) TO postgres;
+GRANT EXECUTE ON FUNCTION public.kuppa_execute_sql(text) TO anon, authenticated, service_role;
+
+CREATE TABLE IF NOT EXISTS public.kuppa_migrations (
+    id SERIAL PRIMARY KEY,
+    migration TEXT NOT NULL UNIQUE,
+    batch INTEGER NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE public.kuppa_migrations ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Kuppa allow all" ON public.kuppa_migrations;
+CREATE POLICY "Kuppa allow all" ON public.kuppa_migrations 
+FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+
+NOTIFY pgrst, 'reload schema';
         `);
         console.log('\x1b[90m------------------------------------------------------------------\x1b[0m\n');
     };
