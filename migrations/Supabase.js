@@ -59,8 +59,7 @@ module.exports = async (mode = 'up') => {
         ALTER TABLE kuppa_migrations DISABLE ROW LEVEL SECURITY;
     `;
     
-    // Updated to call 'kuppa_execute'
-    await supabase.rpc('kuppa_execute', { sql_query: setupSql });
+    await supabase.rpc('kuppa_execute_sql', { sql_query: setupSql });
 
     // 3. Fetch migration history with strict error handling
     const { data: history, error: historyError } = await supabase
@@ -101,6 +100,7 @@ module.exports = async (mode = 'up') => {
     let filesToProcess = [];
 
     if (mode === 'up') {
+        // Strict filtering: Only files NOT in migratedFiles array
         filesToProcess = localFiles.filter(file => !migratedFiles.includes(file));
     } else if (mode === 'down') {
         const lastBatchFiles = history.filter(h => h.batch === lastBatch).map(h => h.migration);
@@ -112,20 +112,17 @@ module.exports = async (mode = 'up') => {
         const forceWipeSql = `
             DO $$ DECLARE r RECORD;
             BEGIN
-                FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename != 'kuppa_migrations') LOOP
+                FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
                     EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(r.tablename) || ' CASCADE';
                 END LOOP;
             END $$;
         `;
-        // Updated to call 'kuppa_execute'
-        await supabase.rpc('kuppa_execute', { sql_query: forceWipeSql });
-        
-        await supabase.from('kuppa_migrations').delete().neq('id', 0);
-        
-        console.log('\x1b[32m[kuppa] Database wiped (preserving history table). Re-starting...\x1b[0m');
+        await supabase.rpc('kuppa_execute_sql', { sql_query: forceWipeSql });
+        console.log('\x1b[32m[kuppa] Database wiped. Re-starting...\x1b[0m');
         return module.exports('up'); 
     }
 
+    // CHECK: Nothing to migrate
     if (filesToProcess.length === 0) {
         console.log('\x1b[33m[kuppa]\x1b[0m Nothing to migrate.');
         process.exit(0);
@@ -142,14 +139,15 @@ module.exports = async (mode = 'up') => {
             
             const sql = (mode === 'up') ? await migration.up() : await migration.down();
 
-            // Updated to call 'kuppa_execute'
-            const { error: execError } = await supabase.rpc('kuppa_execute', { sql_query: sql });
+            // Execute table SQL
+            const { error: execError } = await supabase.rpc('kuppa_execute_sql', { sql_query: sql });
 
             if (execError) {
                 console.error(`\x1b[31m[kuppa] SQL Error in ${file}:\x1b[0m`, execError.message);
                 break; 
             }
 
+            // Update Log
             if (mode === 'up') {
                 const { error: insertError } = await supabase
                     .from('kuppa_migrations')

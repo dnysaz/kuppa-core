@@ -41,19 +41,6 @@ setInterval(() => {
  * Fixed: Flash Message Persistence & userRole Global Sync by Ketut Dana
  */
 module.exports = async (req, res, next) => {
-
-    // --- STEP 0: GOOGLE AUTH AUTO-DETECT ---
-    const isGoogleEnabled = process.env.GOOGLE_AUTH_ENABLED === 'true';
-
-    if (req.path === '/auth/google' && !isGoogleEnabled) {
-            res.status(429);
-            return res.render('auth/social-info', { 
-                layout: false,
-                message: 'Google Authentication is currently disabled.',
-                envHint: 'GOOGLE_AUTH_ENABLED=true'
-            });
-    }
-
     // --- STEP 1: PERFORMANCE SHIELD (IP Rate Limiting) ---
     if (process.env.KUPPA_SHIELD === 'true') {
         const clientIp = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress;
@@ -136,7 +123,7 @@ module.exports = async (req, res, next) => {
         if (!authError && authUser && dbUser) {
             let avatarUrl = dbUser.avatar_url;
             if (avatarUrl && !avatarUrl.startsWith('http')) {
-                avatarUrl = avatarUrl.startsWith('/uploads/') ? avatarUrl : `/uploads/${avatarUrl}`;
+                avatarUrl = avatarUrl.startsWith('/uploads/') ? avatarUrl : `${avatarUrl}`;
             }
 
             const globalUserData = { 
