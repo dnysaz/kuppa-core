@@ -21,7 +21,7 @@ class {{name}} extends BaseController {
         const description = 'Manage your {{name_lower}} here.';
         const view        = '{{name_lower}}.index';
 
-        return process.view(view).with({ 
+        return process.view('{{name_lower}}').with({ 
             title,
             description
         });
@@ -34,7 +34,7 @@ class {{name}} extends BaseController {
         const title = 'Create New {{name}}';
         const view  = '{{name_lower}}.create';
 
-        return process.view(view).with({ 
+        return process.view('{{name_lower}}').with({ 
             title 
         });
     }
@@ -64,5 +64,4 @@ class {{name}} extends BaseController {
     }
 }
 
-// Export as Instance for Route Config
-module.exports = new {{name}}();
+module.exports = {{name}};

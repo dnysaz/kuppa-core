@@ -1,51 +1,24 @@
 /**
  * {{name}} Model - Kuppa Framework
  * Handles data logic for the '{{table}}' table
- * Standardized by Ketut Dana
  */
 
-const BaseModel = coreFile('model.BaseModel');
+const BaseModel     = coreFile('model.BaseModel');
+const { supabase }  = coreFile('config.Database');
 
 class {{name}} extends BaseModel {
-    constructor() {
-        /**
-         * Pass the table name to the BaseModel
-         */
-        super('{{table}}');
-
-        /**
-         * Primary Key Configuration
-         * Default is 'id'
-         */
-        this.primaryKey = 'id';
-
-        /**
-         * Mass Assignment Protection
-         * Only columns listed here can be inserted or updated.
-         */
-        this.fillable = []; 
-
-        /**
-         * Hidden Columns
-         * These columns will be excluded from JSON responses.
-         * Example: ['password', 'secret_token']
-         */
-        this.hidden = [];
-        
-        /**
-         * Cache TTL (Time To Live) in milliseconds
-         * Default: 5000 (5 seconds)
-         */
-        this.cacheTTL = 5000;
-    }
-
     /**
-     * Define custom relationships or logic below
-     * * Example:
-     * static async getLatest() {
-     * return await this.orderBy('created_at', 'desc').limit(10).get();
-     * }
+     * Model Configuration
      */
+    static table = '{{table}}';
+    
+    static fillable = [];
+
+    static relations = {};
+
 }
 
-module.exports = new {{name}}();
+/**
+ * Exporting Class directly for Static Access
+ */
+module.exports = {{name}};

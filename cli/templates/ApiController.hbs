@@ -1,7 +1,7 @@
 /**
  * {{name}} - Kuppa API Framework
  * Standardized JSON CRUD Operations
- * Updated with process.json() by Ketut Dana
+ * Async-Instance Pattern by Ketut Dana
  */
 
 // Core & Application Dependencies
@@ -13,7 +13,7 @@ class {{name}} extends BaseController {
     /**
      * [GET] List all resources
      */
-    static async index(process) {
+    async index(process) {
         try {
             const message = '{{name}} list retrieved successfully';
             
@@ -36,7 +36,7 @@ class {{name}} extends BaseController {
     /**
      * [POST] Store a new resource
      */
-    static async store(process) {
+    async store(process) {
         try {
             const message = '{{name}} created successfully';
             
@@ -56,6 +56,7 @@ class {{name}} extends BaseController {
     }
 
     // do more ...
+
 }
 
 module.exports = {{name}};
