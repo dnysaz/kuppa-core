@@ -6,7 +6,7 @@
 
 // Core & Application Dependencies
 const BaseController = coreFile('controller.BaseController');
-// const Model       = appFile('Models.yourModel');
+const Model          = appFile('Models.Model'); 
 
 class {{name}} extends BaseController {
 
@@ -14,17 +14,26 @@ class {{name}} extends BaseController {
      * [GET] List all resources
      */
     async index(process) {
+        const Model = process.Model;
+
+        // Guard: Autentikasi
+        if (!user) {
+            return process.json({
+                status: 'error',
+                message: 'Unauthorized: User session not found'
+            }, 401);
+        }
+
         try {
             const message = '{{name}} list retrieved successfully';
-            
-            // Logic: const data = await Model.all();
-            const data = []; 
+            const data    = await Model.find(data.id);
 
             return process.json({
                 status: 'success',
                 message,
                 data
             });
+
         } catch (err) {
             return process.json({
                 status: 'error',
@@ -32,30 +41,6 @@ class {{name}} extends BaseController {
             }, 500);
         }
     }
-
-    /**
-     * [POST] Store a new resource
-     */
-    async store(process) {
-        try {
-            const message = '{{name}} created successfully';
-            
-            // Logic: const newItem = await Model.create(process.body);
-
-            return process.json({
-                status: 'success',
-                message,
-                data: process.body
-            }, 201);
-        } catch (err) {
-            return process.json({
-                status: 'error',
-                message: err.message
-            }, 400);
-        }
-    }
-
-    // do more ...
 
 }
 
