@@ -180,6 +180,30 @@ app.use((req, res, next) => {
     next(err); 
 });
 
+// --- GLOBAL ERROR HANDLER (The Final Catcher) ---
+app.use((err, req, res, next) => {
+    // Auto log the crash with full stack trace
+    Logger.error(`[${err.status || 500}] ${req.method} ${req.url} - ${err.message}\nStack: ${err.stack}`);
+
+    const statusCode = err.status || 500;
+
+    if (process.env.APP_DEBUG === 'true') {
+        return res.status(statusCode).send(`
+            <div style="padding: 20px; font-family: sans-serif; line-height: 1.5;">
+                <h1 style="color: #d9534f;">Kuppa Exception [${statusCode}]</h1>
+                <p><strong>Message:</strong> ${err.message}</p>
+                <pre style="background: #f8f9fa; padding: 15px; border: 1px solid #ddd; overflow-x: auto;">${err.stack}</pre>
+            </div>
+        `);
+    }
+
+    if (statusCode === 404) {
+        return res.status(404).render('errors/404', { layout: false });
+    }
+
+    res.status(500).render('errors/500', { layout: false });
+});
+
 // Global ERROR Handler
 app.use(ExceptionHandler);
 
