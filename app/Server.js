@@ -20,13 +20,15 @@ const compression  = require('compression');
 const session      = require('express-session');
 
 // 3. INTERNAL ENGINE HELPERS
-const { registerHelpers } = coreFile('app.Helper');
-const Engine              = coreFile('app.Engine');
-const FlashMiddleware     = coreFile('middleware.FlashMiddleware');
-const GlobalMiddleware    = coreFile('middleware.GlobalMiddleware');
-const Logger              = coreFile('utils.Logger');
-const LogMiddleware       = coreFile('middleware.LogMiddleware');
-const ExceptionHandler    = coreFile('middleware.ExceptionHandler');
+const { registerHelpers }       = coreFile('app.Helper');
+const Engine                    = coreFile('app.Engine');
+const FlashMiddleware           = coreFile('middleware.FlashMiddleware');
+const GlobalMiddleware          = coreFile('middleware.GlobalMiddleware');
+const Logger                    = coreFile('utils.Logger');
+const LogMiddleware             = coreFile('middleware.LogMiddleware');
+const ExceptionHandler          = coreFile('middleware.ExceptionHandler');
+const DatabaseFeatureMiddleware = coreFile('middleware.DatabaseFeatureMiddleware');
+
 
 const app = express();
 
@@ -135,6 +137,9 @@ app.use((req, res, next) => {
     }
     next();
 });
+
+
+app.use(DatabaseFeatureMiddleware)
 
 // --- ROUTE REGISTRATION ---
 
