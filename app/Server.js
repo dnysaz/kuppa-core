@@ -26,8 +26,28 @@ const FlashMiddleware     = coreFile('middleware.FlashMiddleware');
 const GlobalMiddleware    = coreFile('middleware.GlobalMiddleware');
 const Logger              = coreFile('utils.Logger');
 const LogMiddleware       = coreFile('middleware.LogMiddleware');
+const ExceptionHandler    = coreFile('middleware.ExceptionHandler');
 
 const app = express();
+
+const cors = require('cors');
+
+const allowedOrigins = process.env.ALLOWED_ORIGINS 
+    ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim()) 
+    : []; 
+
+app.use(cors({
+    origin: function (origin, callback) {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
 
 /**
  * HIGH PERFORMANCE MIDDLEWARE
@@ -116,17 +136,30 @@ app.use((req, res, next) => {
     next();
 });
 
-/**
- * ENGINE CORE & FLASH INJECTION
- */
-app.use(Engine);
-app.use(FlashMiddleware);
-app.use(GlobalMiddleware);
-app.use(LogMiddleware);
-
 // --- ROUTE REGISTRATION ---
+
+// 1. API - Dipasang secara eksklusif di /api
 app.use('/api', require(path.join(rootDir, 'routes/api')));
-app.use('/', require(path.join(rootDir, 'routes/web')));
+
+// 2. WEB - Dibuat router khusus, dan DIPAKSA untuk tidak menangani /api
+const webRouter = express.Router();
+
+// Middleware Web (Hanya untuk Web)
+webRouter.use(Engine);
+webRouter.use(FlashMiddleware);
+webRouter.use(GlobalMiddleware);
+webRouter.use(LogMiddleware);
+
+// Rute Web
+webRouter.use('/', require(path.join(rootDir, 'routes/web')));
+
+// 3. DAFTARKAN WEB ROUTER DENGAN PATH YANG BENAR
+app.use('/', (req, res, next) => {
+    if (req.originalUrl.startsWith('/api')) {
+        return next();
+    }
+    webRouter(req, res, next);
+});
 
 /**
  * Global Abort Helper
@@ -147,29 +180,9 @@ app.use((req, res, next) => {
     next(err); 
 });
 
-// --- GLOBAL ERROR HANDLER (The Final Catcher) ---
-app.use((err, req, res, next) => {
-    // Auto log the crash with full stack trace
-    Logger.error(`[${err.status || 500}] ${req.method} ${req.url} - ${err.message}\nStack: ${err.stack}`);
+// Global ERROR Handler
+app.use(ExceptionHandler);
 
-    const statusCode = err.status || 500;
-
-    if (process.env.APP_DEBUG === 'true') {
-        return res.status(statusCode).send(`
-            <div style="padding: 20px; font-family: sans-serif; line-height: 1.5;">
-                <h1 style="color: #d9534f;">Kuppa Exception [${statusCode}]</h1>
-                <p><strong>Message:</strong> ${err.message}</p>
-                <pre style="background: #f8f9fa; padding: 15px; border: 1px solid #ddd; overflow-x: auto;">${err.stack}</pre>
-            </div>
-        `);
-    }
-
-    if (statusCode === 404) {
-        return res.status(404).render('errors/404', { layout: false });
-    }
-
-    res.status(500).render('errors/500', { layout: false });
-});
 
 // --- NETWORK UTILITIES ---
 const getLocalIp = () => {

@@ -11,7 +11,7 @@ const BOOT_CONFIG = {
     supabaseActive: !!(process.env.SUPABASE_URL && process.env.SUPABASE_KEY),
     useSupabase: process.env.USE_SUPABASE !== 'false',
     appName: process.env.APP_NAME || 'kuppa.js',
-    appVersion: process.env.APP_VERSION || '0.5.0'
+    appVersion: process.env.APP_VERSION || '0.7.0'
 };
 
 module.exports = (req, res, next) => {

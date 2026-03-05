@@ -86,6 +86,10 @@ module.exports = async (req, res, next) => {
     const urlPath = req.path;
 
     res.locals.currentRoute = urlPath === '/' ? 'home' : urlPath.split('/')[1];
+
+    if (urlPath.startsWith('/api')) {
+        return next(); 
+    }
     
     // FIX: Only initialize if not already set to prevent overwriting flash data
     if (res.locals.user === undefined) res.locals.user = null;

@@ -1,47 +1,38 @@
 /**
  * {{name}} - Kuppa API Framework
  * Standardized JSON CRUD Operations
- * Async-Instance Pattern by Ketut Dana
  */
 
-// Core & Application Dependencies
-const BaseController = coreFile('controller.BaseController');
-const Model          = appFile('Models.Model'); 
+const BaseApiController = coreFile('controller.BaseApiController');
+// const { supabase }   = coreFile('config.Database');
+// const Validation     = coreFile('utils.Validation');
+// const Model          = appFile('Models.Model'); 
 
-class {{name}} extends BaseController {
+class {{name}} extends BaseApiController {
 
     /**
      * [GET] List all resources
      */
     async index(process) {
-        const Model = process.Model;
-
-        // Guard: Autentikasi
-        if (!user) {
-            return process.json({
-                status: 'error',
-                message: 'Unauthorized: User session not found'
-            }, 401);
-        }
+        // 1. Guard: Auth 
+        const user = this.auth(process);
+        if (!user) return; 
 
         try {
-            const message = '{{name}} list retrieved successfully';
-            const data    = await Model.find(data.id);
+            // 2. Fetch Data
+            const items = await this.model.all(); 
 
-            return process.json({
+            // 3. Response Success 
+            return process.res.json({
                 status: 'success',
-                message,
-                data
+                message: '{{name}} list retrieved successfully',
+                data: items
             });
 
         } catch (err) {
-            return process.json({
-                status: 'error',
-                message: err.message
-            }, 500);
+            return BaseApiController.error(process.res, 'Internal server error', 500);
         }
     }
-
 }
 
 module.exports = {{name}};
