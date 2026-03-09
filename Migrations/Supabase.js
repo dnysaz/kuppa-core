@@ -59,7 +59,18 @@ module.exports = async (mode = 'up') => {
         ALTER TABLE kuppa_migrations DISABLE ROW LEVEL SECURITY;
     `;
     
-    await supabase.rpc('kuppa_execute_sql', { sql_query: setupSql });
+    if (!supabase) {
+        console.error("\x1b[31m[Kuppa Error]\x1b[0m: Supabase client is not initialized.");
+        console.error("Please check your SUPABASE_URL and SUPABASE_KEY in your .env file.");
+        process.exit(1);
+    }
+
+    try {
+        await supabase.rpc('kuppa_execute_sql', { sql_query: setupSql });
+    } catch (error) {
+        console.error("\x1b[31m[Database Error]\x1b[0m:", error.message);
+        process.exit(1);
+    }
 
     // 3. Fetch migration history with strict error handling
     const { data: history, error: historyError } = await supabase
