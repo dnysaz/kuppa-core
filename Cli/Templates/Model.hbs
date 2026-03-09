@@ -1,0 +1,24 @@
+/**
+ * {{name}} Model - Kuppa Framework
+ * Handles data logic for the '{{table}}' table
+ */
+
+const BaseModel     = coreFile('Model.BaseModel');
+const { supabase }  = coreFile('Config.Database');
+
+class {{name}} extends BaseModel {
+    /**
+     * Model Configuration
+     */
+    static table = '{{table}}';
+    
+    static fillable = [];
+
+    static relations = {};
+
+}
+
+/**
+ * Exporting Class directly for Static Access
+ */
+module.exports = {{name}};

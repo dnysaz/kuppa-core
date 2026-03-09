@@ -1,0 +1,42 @@
+  [38;5;208m██╗  ██╗██╗   ██╗██████╗ ██████╗  █████╗ [0m
+  [38;5;208m██║ ██╔╝██║   ██║██╔══██╗██╔══██╗██╔══██╗[0m
+  [38;5;208m█████╔╝ ██║   ██║██████╔╝██████╔╝███████║[0m
+  [38;5;208m██╔═██╗ ██║   ██║██╔═══╝ ██╔═══╝ ██╔══██║[0m
+  [38;5;208m██║  ██╗╚██████╔╝██║     ██║     ██║  ██║[0m
+  [38;5;208m╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚═╝     ╚═╝  ╚═╝[0m
+  [1m[32mThe minimalist javascript supabase framework[0m CLI Tool v1.0.0
+
+  [33mUSAGE:[0m
+    [1mnode kuppa [command] [options][0m
+
+  [33mCORE COMMANDS:[0m
+    [32mrun:install[0m           [90mSync & install Kuppa core engine[0m
+    [32mrun:update[0m            [90mUpdate core engine to latest version[0m
+    [32mkey:generate[0m          [90mGenerate a secure 64-char APP_KEY[0m
+
+  [33mAPPLICATION SETUP (Up/Down):[0m
+    [32mup[0m                    [90mTake the application out of maintenance mode[0m
+    [32mdown [msg][0m            [90mPut the application into maintenance mode[0m
+    [32mroute:list[0m            [90mList all registered WEB and API routes[0m
+    [32mclear:cache[0m           [90mFlush native memory cache (auto-managed)[0m
+    [32mclear:log[0m             [90mClear logs from /storage/logs/[0m
+
+
+  [33mGENERATORS (make):[0m
+    [32mmake:controller [N][0m   [90mCreate a new controller. Use[0m [36m--api[0m [90mfor JSON[0m
+    [32mmake:model [N] [-m][0m   [90mCreate a model. Use[0m [36m-m[0m [90mto add a migration[0m
+    [32mmake:migration [N][0m    [90mCreate a new migration file in app/Migrations[0m
+    [32mmake:middleware [N][0m   [90mCreate a new middleware in app/Middleware[0m
+
+  [33mDATABASE (migrate):[0m
+    [32mmigrate[0m               [90mRun all pending migrations to Supabase[0m
+    [32mmigrate:status[0m        [90mCheck the status of all migrations[0m
+    [32mmigrate:rollback[0m      [90mRollback the last migration batch[0m
+    [32mmigrate:fresh[0m         [90mDrop all tables and re-run all migrations[0m
+
+  [33mUTILITIES:[0m
+    [32mdb[0m                    [90mCheck table structures and connection[0m
+    [32msql[0m                   [90mOpen interactive SQL runner[0m
+
+  [33mHELP:[0m
+    [36mhelp, --help[0m          [90mDisplay this help documentation[0m

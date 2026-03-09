@@ -1,0 +1,52 @@
+/**
+ * {{className}} Migration - Kuppa Framework
+ * Standardized for Supabase PostgreSQL
+ * Updated by Ketut Dana
+ */
+
+const Migration = coreFile('Migrations.BaseMigration');
+
+class {{className}} extends Migration {
+    /**
+     * Run the migrations.
+     */
+    async up() {
+        return this.createTable('{{tableName}}', (table) => {
+            // Primary Key: Defaulting to UUID for Supabase optimization
+            table.id(); 
+            
+            /**
+             * Column Examples:
+             * table.string('name', 255).nullable(false);
+             * table.text('bio');
+             * table.integer('stock').default(0);
+             * table.boolean('is_published').default(false);
+             * table.decimal('price', 15, 2);
+             */
+            
+            /**
+             * Relationships & Foreign Keys:
+             * table.uuid('user_id').references('users', 'id').onDelete('CASCADE');
+             */
+
+            // Default Kuppa timestamps (created_at, updated_at)
+            table.timestamps();
+            
+            /**
+             * Indexes for Performance:
+             * table.index(['column_name']);
+             * table.unique(['email']);
+             */
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    async down() {
+        // Safe Drop: Ensure table is removed cleanly
+        return this.dropTable('{{tableName}}');
+    }
+}
+
+module.exports = new {{className}}();

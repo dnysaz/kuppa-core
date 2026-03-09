@@ -1,0 +1,38 @@
+/**
+ * {{name}} - Kuppa API Framework
+ * Standardized JSON CRUD Operations
+ */
+
+const BaseApiController = coreFile('Controller.BaseApiController');
+// const { supabase }   = coreFile('Config.Database');
+// const Validation     = coreFile('Utils.Validation');
+// const Model          = appFile('Models.Model'); 
+
+class {{name}} extends BaseApiController {
+
+    /**
+     * [GET] List all resources
+     */
+    async index(process) {
+        // 1. Guard: Auth 
+        const user = this.auth(process);
+        if (!user) return; 
+
+        try {
+            // 2. Fetch Data
+            const items = await this.model.all(); 
+
+            // 3. Response Success 
+            return process.res.json({
+                status: 'success',
+                message: '{{name}} list retrieved successfully',
+                data: items
+            });
+
+        } catch (err) {
+            return BaseApiController.error(process.res, 'Internal server error', 500);
+        }
+    }
+}
+
+module.exports = {{name}};

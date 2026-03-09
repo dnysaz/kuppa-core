@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>429: Too Many Requests - Kuppa.js</title>
+    <style>
+        :root {
+            --bg: #ffffff;
+            --fg: #000000;
+            --gray: #666666;
+            --line: #eaeaea;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #000000;
+                --fg: #ffffff;
+                --gray: #888888;
+                --line: #333333;
+            }
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: var(--bg);
+            color: var(--fg);
+            font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 500;
+            margin: 0;
+            padding-right: 23px;
+            border-right: 1px solid var(--line);
+            line-height: 49px;
+            letter-spacing: -0.02em;
+        }
+
+        .message-box {
+            display: inline-block;
+            text-align: left;
+        }
+
+        h2 {
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 20px;
+            margin: 0;
+            color: var(--fg);
+        }
+
+        p {
+            font-size: 12px;
+            margin: 4px 0 0 0;
+            color: var(--gray);
+            max-width: 320px;
+            line-height: 1.6;
+        }
+
+        .footer {
+            position: absolute;
+            bottom: 40px;
+            font-size: 11px;
+            letter-spacing: 0.1em;
+            color: var(--gray);
+        }
+
+        .brand {
+            font-weight: 600;
+            color: var(--fg);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>429</h1>
+        <div class="message-box">
+            <h2>Too many requests.</h2>
+            <p>The Kuppa Shield has throttled your connection to protect the engine. Please try again in a minute.</p>
+        </div>
+    </div>
+
+    <div class="footer">
+        Powered by <span class="brand">kuppa.js</span>
+    </div>
+</body>
+</html>

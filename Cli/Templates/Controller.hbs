@@ -1,0 +1,67 @@
+/**
+ * {{name}} - Kuppa Framework
+ * Clean, Instance-based Controller
+ * Optimized by Ketut Dana
+ */
+
+// Core & Application Dependencies
+const BaseController    = coreFile('Controller.BaseController');
+// const Model          = appFile('Models.YourModel'); 
+// const { supabase }   = coreFile('Config.Database');
+// const Session        = coreFile('Auth.Session');
+// const Validation     = coreFile('Utils.Validation');
+
+class {{name}} extends BaseController {
+
+    /**
+     * [GET] Index Page
+     */
+    async index(process) {
+        const title       = 'List of {{name}}';
+        const description = 'Manage your {{name_lower}} here.';
+        const view        = '{{name_lower}}.index';
+
+        return process.view('{{name_lower}}').with({ 
+            title,
+            description
+        });
+    }
+
+    /**
+     * [GET] Create Page
+     */
+    async create(process) {
+        const title = 'Create New {{name}}';
+        const view  = '{{name_lower}}.create';
+
+        return process.view('{{name_lower}}').with({ 
+            title 
+        });
+    }
+
+    /**
+     * [POST] Store Action
+     */
+    async store(process) {
+        // Example: logic to save data
+        // await Model.create(process.body);
+
+        process.res.flash('success', 'Data created successfully!');
+        return process.res.redirect('back');
+    }
+
+    /**
+     * [GET] Edit Page
+     */
+    async edit(process) {
+        const { id } = process.req.params;
+        const title  = 'Edit {{name}}';
+        
+        return process.view('{{name_lower}}.edit').with({ 
+            title,
+            id 
+        });
+    }
+}
+
+module.exports = {{name}};
